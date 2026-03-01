@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic
+pydantic-settings
+python-dotenv
+langgraph
+langchain-google-genai
+httpx
+beautifulsoup4
+alembic
+playwright
