@@ -1,10 +1,9 @@
-import models
-from database import engine
-from routers import categories, products, affiliate
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from database import engine, Base
+from routers import categories, products, affiliate
 
-models.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Affiliate Comparison Platform API")
 

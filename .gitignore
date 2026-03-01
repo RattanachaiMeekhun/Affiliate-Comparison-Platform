@@ -301,4 +301,24 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# macOS
+.DS_Store
+
+# Certificates
+*.pem
+
+# pnpm debug
+.pnpm-debug.log*
+
+# Vercel
+.vercel
+
+# Next.js generated types
+next-env.d.ts
+
+# Production build
+/build
+
+# Agent
 .agent/*
