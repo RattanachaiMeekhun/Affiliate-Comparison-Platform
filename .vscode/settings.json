@@ -1,7 +1,0 @@
-{
-  "python.defaultInterpreterPath": "D:\\WebProject\\Affiliate-Comparison-Platform\\backend\\.venv\\Scripts\\python.exe",
-  "python.analysis.extraPaths": [
-    "D:\\WebProject\\Affiliate-Comparison-Platform\\backend",
-    "D:\\WebProject\\Affiliate-Comparison-Platform\\backend\\app"
-  ]
-}

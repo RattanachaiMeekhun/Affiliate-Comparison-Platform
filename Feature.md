@@ -45,7 +45,7 @@ The system is built on a modular micro-services architecture to ensure high avai
 
 - **Backend:** Python 3.12+ (FastAPI).
 - **Database:** Supabase PostgreSQL (with `PGVector` extension).
-- **Frontend:** Next.js 16 (App Router) with antd modernCSS Redux toolkit axios(create instance).
+- **Frontend:** Next.js 16 (App Router) with antd ,Framer-motion,Pure CSS ,Redux toolkit ,axios(create instance).
 - **Infrastructure:** Backend Google Cloud Run (Containerized Services), Frontend Vercel.
 - **AI Integration:** LangGraph for agent orchestration, Gemini API for data analysis.
 
@@ -55,7 +55,3 @@ The system is built on a modular micro-services architecture to ensure high avai
 2.  **Schema Design:** Finalize the normalized PostgreSQL schema for multi-category products.
 3.  **MVP Ingestion:** Deploy the first scraper for a specific sub-niche (e.g., Mechanical Keyboards) to validate the Matching Engine.
 4.  **SEO Foundation:** Implement Structured Data (Schema.org) immediately upon the first page deployment.
-
-### 7.Cosmetic
-
-- **Frontend:** Add stylish modernCSS to the frontend.With smooth animations and transitions. Use antd modernCSS for components.

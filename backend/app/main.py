@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-from database import engine, Base
-from routers import categories, products, affiliate
+from app.database import engine, Base
+from app.routers import categories, products, affiliate
 
 Base.metadata.create_all(bind=engine)
 
