@@ -1,61 +1,61 @@
-# Project Documentation: Intelligent Tech-Affiliate Aggregator
+# Project Documentation: PixelStack.io
 
-## 1. Project Vision
+## Intelligent Tech-Affiliate Aggregator
 
-To build a high-conversion, data-driven affiliate platform for **Tech Products** (Micro-Niche). Unlike traditional blog-based affiliate sites, this platform functions as a **Product-Led Tool** that uses automation and AI to help users make informed purchase decisions based on data, not just opinion.
+### 1. Vision
 
-[Image of cloud-based web application architecture]
+PixelStack.io serves as a high-performance, data-driven hub that bridges the gap between raw e-commerce data and informed purchasing decisions. By leveraging AI-automated scraping and semantic matching, we provide tech enthusiasts with the most accurate, real-time comparisons across multi-category markets (Retail, Gaming, Services, and Finance).
 
-## 2. Core Value Proposition
+### 2. Core Modules & Architecture
 
-- **Precision:** Focus on high-intent categories (e.g., trading hardware, developer productivity gear).
-- **AI-Driven Insights:** Automated summaries of technical specs and value-for-money analysis.
-- **Utility-First:** Built-in tools like "Setup Builders" and "Real-time Price Comparison" that solve actual user problems.
+The system is built on a modular micro-services architecture to ensure high availability and data integrity.
 
-## 3. Pages & Features List
+- **Ingestion Layer:** Asynchronous crawlers (Playwright/Scrapy) managing multi-source data ingestion.
+- **Intelligence Layer:** Gemini-based matching engine utilizing vector embeddings (PGVector) to normalize product identities.
+- **Distribution Layer:** SEO-optimized frontend (Next.js) serving server-side rendered (SSR) content.
+- **Operations Layer:** Admin dashboard for manual data overrides and scraper health monitoring.
 
-### Core Pages
+### 3. Feature Specifications
 
-- **Homepage:** Featured AI-curated deals and navigation to specific niches.
-- **Category/Niche Page:** Interactive filterable lists (e.g., "Trading Monitors by resolution/refresh rate").
-- **Product Detail Page (PDP):**
-  - Smart Comparison Table (Cross-market price comparison).
-  - AI-generated Pros/Cons.
-  - Price History Charts.
-- **Tool/Utility Page:** "Setup Builder" logic for hardware recommendations based on user budget.
-- **About/Expertise Page:** Essential for E-E-A-T (Expertise, Experience, Authoritativeness, Trustworthiness) to improve SEO.
+| Feature                | Description                                                     | Implementation Priority |
+| :--------------------- | :-------------------------------------------------------------- | :---------------------- |
+| **Smart Aggregator**   | Centralizes data from Shopee, Lazada, and partner programs.     | P0                      |
+| **Semantic Matching**  | AI-driven product normalization (e.g., "iPhone 15" vs "iP 15"). | P0                      |
+| **Interactive Tables** | Filterable, sortable, and responsive comparison grids.          | P0                      |
+| **Price History API**  | Tracks price fluctuations for historical value analysis.        | P1                      |
+| **AI Insights Panel**  | Automated Pros/Cons and value scores for each product.          | P1                      |
+| **Setup Builder**      | User-input tool to generate hardware recommendations.           | P2                      |
 
-### Key Features
+### 4. Page Hierarchy
 
-- **Frontend:** Responsive design with dynamic filtering, dark mode, and SEO-optimized Schema markup (Product, AggregateOffer).
-- **Backend:** Automated Scraper engine (Playwright/Scrapy), asynchronous task queues for updates.
-- **AI Engine:** Semantic matching for identical products across different marketplaces using Embeddings and PGVector.
-- **Ops:** Admin dashboard to override AI results, monitor scraper health, and track affiliate click-through-rates (CTR).
+#### A. Core Pages
 
-## 4. Technical Architecture & Database Schema
+- **Homepage:** Landing page featuring trending AI-curated deals across all categories.
+- **Comparison Hubs:** Dedicated pages for Niche categories (e.g., `/gaming-gear`, `/quant-hardware`).
+- **Product Detail Page (PDP):** Deep dive page including cross-market pricing, specs, and price trends.
+- **Setup Builder Tool:** Interactive wizard for custom hardware configurations.
 
-The foundation relies on a relational database design capable of handling diverse technical specifications.
+#### B. Support & Authority Pages
 
-[Image of relational database schema design]
+- **Methodology Page:** Transparency page explaining how PixelStack data is sourced and analyzed (Essential for E-E-A-T).
+- **About/Contact:** Corporate information and developer contact channels.
+- **Legal:** Affiliate Disclosure, Privacy Policy, and Terms of Service.
 
-### Recommended Schema Design Principles:
+### 5. Technical Stack
 
-- **Products Table:** Store core product identity (UUID, Name, Category).
-- **Prices Table:** Relational table storing timestamps and prices from various stores.
-- **Specs Table (JSONB):** Use PostgreSQL `JSONB` to store varying technical specifications (CPU, RAM, Refresh Rate, etc.) without rigid schema constraints.
-- **Affiliate Links Table:** Dedicated store for generated deep-links and tracking codes.
+- **Backend:** Python 3.12+ (FastAPI).
+- **Database:** Supabase PostgreSQL (with `PGVector` extension).
+- **Frontend:** Next.js 16 (App Router) with antd modernCSS Redux toolkit axios(create instance).
+- **Infrastructure:** Backend Google Cloud Run (Containerized Services), Frontend Vercel.
+- **AI Integration:** LangGraph for agent orchestration, Gemini API for data analysis.
 
-## 5. Development Roadmap (MVP)
+### 6. Development Strategy (Next Steps)
 
-| Phase       | Focus            | Key Tasks                                           |
-| :---------- | :--------------- | :-------------------------------------------------- |
-| **Phase 1** | Research & Setup | Keyword analysis, Affiliate API integration.        |
-| **Phase 2** | MVP Backend      | Scraper engine, PostgreSQL Schema, Matching logic.  |
-| **Phase 3** | Frontend & SEO   | Next.js deployment, Structured data implementation. |
-| **Phase 4** | Optimization     | AI-driven insights, Price history, Analytics.       |
+1.  **Environment Setup:** Initialize the GitHub repository and CI/CD pipeline.
+2.  **Schema Design:** Finalize the normalized PostgreSQL schema for multi-category products.
+3.  **MVP Ingestion:** Deploy the first scraper for a specific sub-niche (e.g., Mechanical Keyboards) to validate the Matching Engine.
+4.  **SEO Foundation:** Implement Structured Data (Schema.org) immediately upon the first page deployment.
 
-## 6. Senior Dev Strategy Notes
+### 7.Cosmetic
 
-- **Focus on the "Matching Engine" first:** This is your competitive moat. Use AI to normalize data across different marketplace formats.
-- **Prioritize Technical SEO:** Use Server-Side Rendering (SSR) to ensure Google can parse your comparison data effectively.
-- **Infrastructure:** Start with Cloud Run/Kubernetes to handle the asynchronous nature of your web crawlers.
+- **Frontend:** Add stylish modernCSS to the frontend.With smooth animations and transitions. Use antd modernCSS for components.

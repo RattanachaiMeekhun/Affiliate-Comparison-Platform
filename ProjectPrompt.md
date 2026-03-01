@@ -2,7 +2,7 @@ Act as a Senior Software Architect and AI Engineer.
 
 Project Context: I am building an Affiliate Comparison Platform template for Tech products Niche market. My goal is to create an automated system that scrapes product data, matches/normalizes it using AI, and presents a comparison table that highlights 'Best Value' using AI-generated insights.
 
-Technical Stack: Python (FastAPI), PostgreSQL, React/vinext, and LangGraph/Gemini API.
+Technical Stack: Python (FastAPI), PostgreSQL, React/Next.js 16 (App Router) with antd modernCSS Redux toolkit axios(create instance), and LangGraph/Gemini API.
 
 Task:
 
