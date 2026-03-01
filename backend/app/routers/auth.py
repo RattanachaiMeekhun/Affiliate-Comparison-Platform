@@ -4,7 +4,6 @@ from app.database import get_db
 from app.models import User
 from app.schemas import UserCreate, UserResponse
 from app.utils import get_password_hash, verify_password
-from app.config import settings
 
 router = APIRouter()
 

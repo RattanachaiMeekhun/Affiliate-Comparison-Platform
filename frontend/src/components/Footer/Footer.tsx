@@ -29,10 +29,12 @@ export default function Footer() {
         <div className={styles.linkColumn}>
           <h4>Company</h4>
           <ul>
-            <li><Link href="/methodology">About Us</Link></li>
-            <li><Link href="/methodology">Editorial Policy</Link></li>
-            <li><Link href="/methodology">Privacy Policy</Link></li>
-            <li><Link href="/methodology">Terms</Link></li>
+            <li><Link href="/about">About Us</Link></li>
+            <li><Link href="/methodology">Methodology</Link></li>
+            <li><Link href="/contact">Contact</Link></li>
+            <li><Link href="/privacy">Privacy Policy</Link></li>
+            <li><Link href="/terms">Terms of Service</Link></li>
+            <li><Link href="/disclosure">Affiliate Disclosure</Link></li>
           </ul>
         </div>
       </div>

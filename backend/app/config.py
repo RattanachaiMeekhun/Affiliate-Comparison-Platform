@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     LLM_MODEL_NAME: str = "gemini-2.5-pro"
     LLM_API_KEY: str | None = None
     LLM_BASE_URL: str | None = None
+    LLM_TEMPERATURE: float = 0.2
+    LLM_SAFETY_SETTINGS: dict = {
+        "HARM_CATEGORY_HARASSMENT": "BLOCK_MEDIUM_AND_ABOVE",
+        "HARM_CATEGORY_HATE_SPEECH": "BLOCK_MEDIUM_AND_ABOVE",
+    }
 
     # Auth
     JWT_SECRET_KEY: str | None = None
