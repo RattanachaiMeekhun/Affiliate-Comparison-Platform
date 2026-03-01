@@ -11,3 +11,7 @@ httpx
 beautifulsoup4
 alembic
 playwright
+supabase
+gotrue
+python-dotenv
+
