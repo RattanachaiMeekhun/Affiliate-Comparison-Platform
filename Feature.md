@@ -1,10 +1,10 @@
-# Project Documentation: PixelStack.io
+# Project Documentation: stacknodes.net
 
 ## Intelligent Tech-Affiliate Aggregator
 
 ### 1. Vision
 
-PixelStack.io serves as a high-performance, data-driven hub that bridges the gap between raw e-commerce data and informed purchasing decisions. By leveraging AI-automated scraping and semantic matching, we provide tech enthusiasts with the most accurate, real-time comparisons across multi-category markets (Retail, Gaming, Services, and Finance).
+stacknodes.net serves as a high-performance, data-driven hub that bridges the gap between raw e-commerce data and informed purchasing decisions. By leveraging AI-automated scraping and semantic matching, we provide tech enthusiasts with the most accurate, real-time comparisons across multi-category markets (Retail, Gaming, Services, and Finance).
 
 ### 2. Core Modules & Architecture
 
@@ -37,7 +37,7 @@ The system is built on a modular micro-services architecture to ensure high avai
 
 #### B. Support & Authority Pages
 
-- **Methodology Page:** Transparency page explaining how PixelStack data is sourced and analyzed (Essential for E-E-A-T).
+- **Methodology Page:** Transparency page explaining how stacknodes data is sourced and analyzed (Essential for E-E-A-T).
 - **About/Contact:** Corporate information and developer contact channels.
 - **Legal:** Affiliate Disclosure, Privacy Policy, and Terms of Service.
 

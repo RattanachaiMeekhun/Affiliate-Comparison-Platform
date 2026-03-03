@@ -1,8 +1,8 @@
-# PixelStack.io
+# stacknodes.net
 
 **The Intelligent Tech-Affiliate Aggregator**
 
-PixelStack.io is a data-driven platform built to bridge the gap between complex technical product data and consumer purchasing decisions. By combining automated web-scraping pipelines, semantic AI matching, and SEO-optimized architecture, PixelStack provides tech enthusiasts with high-fidelity product comparisons across multiple categories (Tech, Gaming, Services, and Finance).
+stacknodes.net is a data-driven platform built to bridge the gap between complex technical product data and consumer purchasing decisions. By combining automated web-scraping pipelines, semantic AI matching, and SEO-optimized architecture, stacknodes provides tech enthusiasts with high-fidelity product comparisons across multiple categories (Tech, Gaming, Services, and Finance).
 
 ## 🚀 Vision
 

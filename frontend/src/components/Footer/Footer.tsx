@@ -7,8 +7,8 @@ export default function Footer() {
       <div className={styles.footerInner}>
         <div className={styles.brandBlock}>
           <h3>
-            <span className={styles.brandIcon}>P</span>
-            PixelStack
+            <span className={styles.brandIcon}>s</span>
+            stacknodes
           </h3>
           <p>
             Curating the best hardware deals for professionals. We help you find
@@ -40,7 +40,7 @@ export default function Footer() {
       </div>
 
       <p className={styles.copyright}>
-        © 2025 PixelStack Inc. All rights reserved.
+        © 2025 stacknodes Inc. All rights reserved.
       </p>
     </footer>
   );

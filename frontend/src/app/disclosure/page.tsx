@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Disclosure - PixelStack',
-  description: 'Affiliate Disclosure for PixelStack.io.',
+  title: 'Affiliate Disclosure - stacknodes',
+  description: 'Affiliate Disclosure for stacknodes.net.',
 };
 
 export default function DisclosurePage() {
@@ -12,12 +12,12 @@ export default function DisclosurePage() {
 
       <div style={{ lineHeight: '1.8' }}>
         <p style={{ marginBottom: '20px', fontSize: '1.1rem' }}>
-          Transparency is core to the PixelStack.io experience. We believe in providing data-driven, unbiased insights to help you choose the best tech, games, and services.
+          Transparency is core to the stacknodes.net experience. We believe in providing data-driven, unbiased insights to help you choose the best tech, games, and services.
         </p>
 
         <h2 style={{ fontSize: '1.5rem', marginTop: '30px', marginBottom: '15px' }}>How We Make Money</h2>
         <p style={{ marginBottom: '20px' }}>
-          PixelStack.io is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Shopee, Lazada, Admitad, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant.
+          stacknodes.net is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Shopee, Lazada, Admitad, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant.
         </p>
 
         <h2 style={{ fontSize: '1.5rem', marginTop: '30px', marginBottom: '15px' }}>Our Promise to You</h2>
@@ -29,7 +29,7 @@ export default function DisclosurePage() {
 
         <div style={{ padding: '20px', background: 'var(--bg-secondary)', borderRadius: '8px', borderLeft: '4px solid var(--primary)' }}>
           <p style={{ fontStyle: 'italic', margin: 0 }}>
-            Thank you for supporting PixelStack.io, which allows us to continue building and refining the tools that help you shop smarter.
+            Thank you for supporting stacknodes.net, which allows us to continue building and refining the tools that help you shop smarter.
           </p>
         </div>
       </div>

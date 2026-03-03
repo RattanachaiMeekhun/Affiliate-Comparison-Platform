@@ -103,7 +103,7 @@ export default function MethodologyPage() {
             margin: '0 auto',
             lineHeight: 1.7,
           }}>
-            Discover how PixelStack curates, analyzes, and ranks hardware to help
+            Discover how stacknodes curates, analyzes, and ranks hardware to help
             professionals make informed purchasing decisions.
           </p>
         </motion.div>

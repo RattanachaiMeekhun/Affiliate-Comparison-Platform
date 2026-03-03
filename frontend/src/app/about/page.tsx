@@ -2,14 +2,14 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About Us - PixelStack',
-  description: 'About PixelStack and our mission to simplify hardware comparison.',
+  title: 'About Us - stacknodes',
+  description: 'About stacknodes and our mission to simplify hardware comparison.',
 };
 
 export default function AboutPage() {
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: '2.5rem', marginBottom: '30px' }}>About PixelStack.io</h1>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '30px' }}>About stacknodes.net</h1>
 
       <div style={{ lineHeight: '1.8' }}>
         <p style={{ marginBottom: '20px', fontSize: '1.1rem' }}>
@@ -23,7 +23,7 @@ export default function AboutPage() {
 
         <h2 style={{ fontSize: '1.5rem', marginTop: '30px', marginBottom: '15px' }}>Our Solution</h2>
         <p style={{ marginBottom: '20px' }}>
-          PixelStack.io uses an AI-powered matching engine to normalize product data across multiple merchants. Our system groups identical products together, cutting through the noise and allowing you to compare options side-by-side with clear, data-driven insights.
+          stacknodes.net uses an AI-powered matching engine to normalize product data across multiple merchants. Our system groups identical products together, cutting through the noise and allowing you to compare options side-by-side with clear, data-driven insights.
         </p>
         
         <p style={{ marginBottom: '30px' }}>

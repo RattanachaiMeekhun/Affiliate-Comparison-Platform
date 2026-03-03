@@ -2,8 +2,8 @@ import { Metadata } from 'next';
 import { MailOutlined } from '@ant-design/icons';
 
 export const metadata: Metadata = {
-  title: 'Contact Us - PixelStack',
-  description: 'Get in touch with the PixelStack team.',
+  title: 'Contact Us - stacknodes',
+  description: 'Get in touch with the stacknodes team.',
 };
 
 export default function ContactPage() {
@@ -21,7 +21,7 @@ export default function ContactPage() {
           Drop us a message and we will get back to you as soon as possible.
         </p>
         <a 
-          href="mailto:support@pixelstack.io" 
+          href="mailto:support@stacknodes.net" 
           style={{ 
             display: 'inline-block', 
             padding: '12px 24px', 
@@ -33,7 +33,7 @@ export default function ContactPage() {
             fontSize: '1.1rem'
           }}
         >
-          support@pixelstack.io
+          support@stacknodes.net
         </a>
       </div>
     </div>

@@ -27,8 +27,8 @@ export default function Header() {
       >
         <div className={styles.headerInner}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon}>P</span>
-            PixelStack
+            <span className={styles.logoIcon}>s</span>
+            stacknodes
           </Link>
 
           <nav className={styles.nav}>

@@ -6,7 +6,7 @@ import Footer from '@/components/Footer/Footer';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'PixelStack — AI-Powered Hardware Deals for Professionals',
+  title: 'stacknodes — AI-Powered Hardware Deals for Professionals',
   description:
     'Find the best hardware deals across Amazon, Best Buy, Newegg & more. AI-curated comparisons for data scientists, video editors, 3D artists, and gamers.',
 };

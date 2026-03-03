@@ -849,9 +849,9 @@
     clsx "^2.1.1"
 
 "@rc-component/select@~1.6.0", "@rc-component/select@~1.6.12":
-  version "1.6.13"
-  resolved "https://registry.yarnpkg.com/@rc-component/select/-/select-1.6.13.tgz#70a6daba619ff296361442e1b753aae4f6aa24a0"
-  integrity sha512-Rz5tWhicICyKEu3Z9OakYAMHmHgRAvtSG3OHNZILdw1rEo+3wAAbM2cH/kwXq1jTA36etU1te++oZOm94rmzYw==
+  version "1.6.14"
+  resolved "https://registry.yarnpkg.com/@rc-component/select/-/select-1.6.14.tgz#61028c0abe02d2a909935b5cb586374968196c96"
+  integrity sha512-T1IWeLlSas7Z/igZtPtJ/bweCxMMkXIGKQBtnigK+I/n1AVNjCs+ZdL3Fj42mq3uqm4sd1uzeQLZkdCqR26ADw==
   dependencies:
     "@rc-component/overflow" "^1.0.0"
     "@rc-component/trigger" "^3.0.0"
@@ -2261,9 +2261,9 @@ flat-cache@^4.0.0:
     keyv "^4.5.4"
 
 flatted@^3.2.9:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.3.3.tgz#67c8fad95454a7c7abebf74bb78ee74a44023358"
-  integrity sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==
+  version "3.3.4"
+  resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.3.4.tgz#0986e681008f0f13f58e18656c47967682db5ff6"
+  integrity sha512-3+mMldrTAPdta5kjX2G2J7iX4zxtnwpdA8Tr2ZSjkyPSanvbZAcy6flmtnXbEybHrDcU9641lxrMfFuUxVz9vA==
 
 follow-redirects@^1.15.11:
   version "1.15.11"
@@ -2289,9 +2289,9 @@ form-data@^4.0.5:
     mime-types "^2.1.12"
 
 framer-motion@^12.34.3:
-  version "12.34.3"
-  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-12.34.3.tgz#946f716bfef710d564bf721f4f364274f6278fd4"
-  integrity sha512-v81ecyZKYO/DfpTwHivqkxSUBzvceOpoI+wLfgCgoUIKxlFKEXdg0oR9imxwXumT4SFy8vRk9xzJ5l3/Du/55Q==
+  version "12.34.4"
+  resolved "https://registry.yarnpkg.com/framer-motion/-/framer-motion-12.34.4.tgz#3965124b402738751054806b4a35def58e5f9dab"
+  integrity sha512-q1PwNhc1XJ3qYG7nc9+pEU5P3tnjB6Eh9vv5gGzy61nedDLB4+xk5peMCWhKM0Zn6sfhgunf/q9n0UgCoyKOBA==
   dependencies:
     motion-dom "^12.34.3"
     motion-utils "^12.29.2"

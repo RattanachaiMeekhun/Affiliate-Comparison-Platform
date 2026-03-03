@@ -90,23 +90,23 @@ export default function LoginModal({ open, onCancel }: LoginModalProps) {
       title = 'Affiliate Disclosure';
       content = (
         <>
-          <p>Transparency is core to the PixelStack.io experience. We believe in providing data-driven, unbiased insights to help you choose the best tech, games, and services.</p>
+          <p>Transparency is core to the stacknodes.net experience. We believe in providing data-driven, unbiased insights to help you choose the best tech, games, and services.</p>
           <h3>How We Make Money</h3>
-          <p>PixelStack.io is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Shopee, Lazada, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant.</p>
+          <p>stacknodes.net is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Shopee, Lazada, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant.</p>
           <h3>Our Promise to You</h3>
           <ul>
             <li><strong>Objectivity:</strong> Our AI-driven comparison engine prioritizes value and specifications, not commission rates.</li>
             <li><strong>Transparency:</strong> We clearly identify affiliate links and provide accurate pricing and specification data wherever possible.</li>
             <li><strong>Independence:</strong> Our recommendations are based on our proprietary matching engine, which aims to find the best match for your needs based on the latest market data.</li>
           </ul>
-          <p><em>Thank you for supporting PixelStack.io, which allows us to continue building and refining the tools that help you shop smarter.</em></p>
+          <p><em>Thank you for supporting stacknodes.net, which allows us to continue building and refining the tools that help you shop smarter.</em></p>
         </>
       );
     } else if (view === 'features') {
       title = 'Platform Features';
       content = (
         <>
-          <p>PixelStack.io serves as a high-performance, data-driven hub that bridges the gap between raw e-commerce data and informed purchasing decisions.</p>
+          <p>stacknodes.net serves as a high-performance, data-driven hub that bridges the gap between raw e-commerce data and informed purchasing decisions.</p>
           <ul>
             <li><strong>Smart Aggregator:</strong> Centralizes data from Shopee, Lazada, and partner programs.</li>
             <li><strong>Semantic Matching:</strong> AI-driven product normalization (e.g., "iPhone 15" vs "iP 15").</li>
@@ -132,7 +132,7 @@ export default function LoginModal({ open, onCancel }: LoginModalProps) {
             <li>To provide personalized features such as price alerts, watchlists, and setup configurations.</li>
           </ul>
           <h3>3. Affiliate Disclosure</h3>
-          <p>PixelStack.io participates in various affiliate programs. We may earn a commission if you click on a link and make a purchase.</p>
+          <p>stacknodes.net participates in various affiliate programs. We may earn a commission if you click on a link and make a purchase.</p>
           <h3>4. Security</h3>
           <p>Your data is securely managed through Supabase and Google Authentication. We do not store your passwords on our servers.</p>
         </>
@@ -190,7 +190,7 @@ export default function LoginModal({ open, onCancel }: LoginModalProps) {
               <div className={styles.header}>
                 <div className={styles.brand}>
                   <div className={styles.brandIcon}>P</div>
-                  <span className={styles.brandText}>PixelStack</span>
+                  <span className={styles.brandText}>stacknodes</span>
                 </div>
                 <h1 className={styles.title}>Welcome back</h1>
                 <p className={styles.subtitle}>Enter your credentials to access your dashboard.</p>

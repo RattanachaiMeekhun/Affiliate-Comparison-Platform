@@ -1,8 +1,8 @@
-# Privacy Policy for PixelStack.io
+# Privacy Policy for stacknodes.net
 
 **Last Updated: March 1, 2026**
 
-At PixelStack.io, accessible from https://pixelstack.io, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by PixelStack.io and how we use it.
+At stacknodes.net, accessible from https://stacknodes.net, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by stacknodes.net and how we use it.
 
 ## 1. Information We Collect
 
@@ -18,7 +18,7 @@ At PixelStack.io, accessible from https://pixelstack.io, one of our main priorit
 
 ## 3. Affiliate Disclosure
 
-PixelStack.io participates in various affiliate programs, including Admitad. This means we may earn a commission if you click on a link and make a purchase, at no additional cost to you. We are committed to transparency and provide these links to help you make informed decisions.
+stacknodes.net participates in various affiliate programs, including Admitad. This means we may earn a commission if you click on a link and make a purchase, at no additional cost to you. We are committed to transparency and provide these links to help you make informed decisions.
 
 ## 4. Security
 
