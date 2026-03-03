@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { BellOutlined, SettingOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockDellProduct } from '@/lib/mockData';
+import { mockDellProduct } from '@/util/mockData';
 import styles from './page.module.css';
 
 const chartTabs = ['1W', '1M', '3M', 'YTD'];

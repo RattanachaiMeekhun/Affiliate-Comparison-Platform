@@ -9,7 +9,7 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockProducts, mockCategories } from '@/lib/mockData';
+import { mockProducts, mockCategories } from '@/util/mockData';
 
 export default function CategoryPage() {
   const category = mockCategories[0];

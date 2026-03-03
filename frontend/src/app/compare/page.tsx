@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import { Slider, Select } from 'antd';
 import { BulbOutlined } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal, staggerItem } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockProducts } from '@/lib/mockData';
+import { mockProducts } from '@/util/mockData';
 import styles from './page.module.css';
 
 const brands = ['Apple', 'Dell', 'ASUS', 'Lenovo'];

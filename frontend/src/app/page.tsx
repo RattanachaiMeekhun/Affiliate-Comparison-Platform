@@ -9,7 +9,7 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockCategories, mockProducts } from '@/lib/mockData';
+import { mockCategories, mockProducts } from '@/util/mockData';
 import styles from './page.module.css';
 import { useState } from 'react';
 
