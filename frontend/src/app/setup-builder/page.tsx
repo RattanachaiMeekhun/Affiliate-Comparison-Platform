@@ -105,7 +105,7 @@ export default function SetupBuilderPage() {
           <Progress
             percent={progress}
             strokeColor="#2563EB"
-            trailColor="#E5E7EB"
+            railColor="#E5E7EB"
             showInfo={false}
             style={{ maxWidth: 400, margin: '0 auto' }}
           />
