@@ -6,8 +6,10 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint",
-    "build": "opennextjs-cloudflare build",
-    "deploy": "wrangler deploy"
+    "build": "next",
+    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
     "@ant-design/cssinjs": "^2.1.0",
