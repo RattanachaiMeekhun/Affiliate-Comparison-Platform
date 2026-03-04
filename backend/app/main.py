@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from app.database import engine, Base
-from app.routers import categories, products, affiliate, scraper
+from app.routers import categories, products, affiliate
 from app.config import settings
 
 import sys
@@ -26,7 +26,6 @@ app.add_middleware(
 app.include_router(categories.router)
 app.include_router(products.router)
 app.include_router(affiliate.router)
-app.include_router(scraper.router)
 
 
 @app.get("/")
