@@ -68,6 +68,15 @@ def get_all_product_names(db: Session):
     return [name[0] for name in db.query(models.Product.name).all()]
 
 
+def get_product_names_by_category(db: Session, category_id: uuid.UUID):
+    return [
+        name[0]
+        for name in db.query(models.Product.name)
+        .filter(models.Product.category_id == category_id)
+        .all()
+    ]
+
+
 def get_category(db: Session, category_id: uuid.UUID):
     return db.query(models.Category).filter(models.Category.id == category_id).first()
 
