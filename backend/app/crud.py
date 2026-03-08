@@ -64,6 +64,14 @@ def create_products(db: Session, products_data: list[dict]):
     return db_products
 
 
+def get_all_product_names(db: Session):
+    return [name[0] for name in db.query(models.Product.name).all()]
+
+
+def get_category(db: Session, category_id: uuid.UUID):
+    return db.query(models.Category).filter(models.Category.id == category_id).first()
+
+
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Category).offset(skip).limit(limit).all()
 
