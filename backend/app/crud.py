@@ -1,6 +1,9 @@
+from datetime import datetime
 from sqlalchemy.orm import Session
 from . import models, schemas
 import uuid
+from slugify import slugify
+from typing import List
 
 
 def get_product(db: Session, product_id: uuid.UUID):
@@ -28,6 +31,8 @@ def create_products(db: Session, products_data: list[dict]):
             "best_value",
             "trending_score",
             "category_id",
+            "price",
+            "currency",
         ]
         p_data = {k: v for k, v in data.items() if k in product_keys}
 
@@ -41,6 +46,7 @@ def create_products(db: Session, products_data: list[dict]):
                 "source_url",
                 "price",
                 "currency",
+                "image_url",
                 "raw_data",
             ]
             # Some prompts might return price as image_url or generic data, try to be safe
@@ -63,7 +69,16 @@ def get_categories(db: Session, skip: int = 0, limit: int = 100):
 
 
 def create_category(db: Session, category: schemas.CategoryCreate):
-    db_category = models.Category(**category.dict())
+    category_data = category.dict()
+    category_data["id"] = uuid.uuid4()
+    category_data["created_at"] = datetime.now()
+    category_data["updated_at"] = datetime.now()
+    if not category_data.get("slug"):
+        category_data["slug"] = slugify(category_data["name"])
+    parent_id = category_data.pop("parent_id", None)
+    db_category = models.Category(**category_data)
+    if parent_id:
+        db_category.parent_id = parent_id
     db.add(db_category)
     db.commit()
     db.refresh(db_category)
@@ -82,3 +97,15 @@ def create_affiliate_product(
 
 def get_affiliate_products(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.AffiliateProduct).offset(skip).limit(limit).all()
+
+
+def get_categories_by_names(db: Session, names: str):
+    names_list = [name.strip() for name in names.split(",")]
+    return db.query(models.Category).filter(models.Category.name.in_(names_list)).all()
+
+
+def update_category(db: Session, categorise: List[models.Category]):
+    db.commit()
+    for category in categorise:
+        db.refresh(category)
+    return categorise

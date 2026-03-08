@@ -7,6 +7,7 @@ pydantic-settings
 python-dotenv
 langgraph
 langchain-google-genai
+langchain-openai
 httpx
 beautifulsoup4
 alembic
@@ -14,4 +15,4 @@ playwright
 supabase
 gotrue
 python-dotenv
-
+ddgs

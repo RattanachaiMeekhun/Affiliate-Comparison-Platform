@@ -16,6 +16,12 @@ class SearchAgentState(TypedDict):
     price: float
     currency: str
     source: str
-    insight: str
-    best_match_id: Optional[str]
-    confidence: float
+    # ── eBay integration fields ──
+    ebay_results: Optional[List[dict]]  # Normalized eBay listings
+    ebay_raw: Optional[str]  # Raw JSON string from eBay tool
+
+    # ── Web search (Shopee/Lazada fallback) ──
+    web_results: Optional[List[dict]]
+    web_raw: Optional[str]
+
+    combined_analysis: Optional[str]  # AI analysis merging all data

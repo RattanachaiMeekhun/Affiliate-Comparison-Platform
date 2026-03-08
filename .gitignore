@@ -322,3 +322,7 @@ next-env.d.ts
 
 # Agent
 .agent/*
+# uv environment
+.venv/
+uv.lock
+pyproject.toml

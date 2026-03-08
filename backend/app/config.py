@@ -29,6 +29,12 @@ class Settings(BaseSettings):
         "HARM_CATEGORY_HATE_SPEECH": "BLOCK_MEDIUM_AND_ABOVE",
     }
 
+    # eBay Browse API
+    EBAY_CLIENT_ID: str | None = None
+    EBAY_CLIENT_SECRET: str | None = None
+    EBAY_SANDBOX: bool | None = True  # "true" = sandbox, "false" = production
+    EBAY_MARKETPLACE_ID: str = "EBAY_TH"  # e.g. EBAY_US, EBAY_GB, EBAY_AU
+
     # Auth
     JWT_SECRET_KEY: str | None = None
     ALGORITHM: str = "HS256"
