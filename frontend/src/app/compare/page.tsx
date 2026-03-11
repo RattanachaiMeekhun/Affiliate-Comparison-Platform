@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Slider, Select } from 'antd';
 import { BulbOutlined } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal, staggerItem } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockProducts } from '@/util/mockData';
+import { fetchProducts, Product } from '@/lib/api';
 import styles from './page.module.css';
 
 const brands = ['Apple', 'Dell', 'ASUS', 'Lenovo'];
@@ -17,6 +17,23 @@ export default function ComparePage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([800, 2500]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>(['Apple']);
   const [activeChips] = useState(['Apple', '$800 - $2500', 'Gaming Laptops']);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const prods = await fetchProducts();
+        setProducts(prods);
+      } catch (err) {
+        console.error("Error loading compare page data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -35,7 +52,7 @@ export default function ComparePage() {
           transition={{ duration: 0.5, delay: 0.1 }}
         >
           <h2 className={styles.sidebarTitle}>Filters</h2>
-          <p className={styles.resultCount}>Refining 142 results</p>
+          <p className={styles.resultCount}>Refining {products.length} results</p>
 
           {/* Price Range */}
           <div className={styles.filterGroup}>
@@ -133,113 +150,129 @@ export default function ComparePage() {
             />
           </div>
 
-          {/* Product Table */}
-          <ScrollReveal>
-            <div className={styles.productTable}>
-              <div className={styles.tableHeader}>
-                <span>Product</span>
-                <span>Key Specs</span>
-                <span>Trend</span>
-                <span style={{ textAlign: 'right' }}>Marketplace Price</span>
-              </div>
+          {isLoading ? (
+            <div style={{ textAlign: 'center', padding: 40 }}>Loading products...</div>
+          ) : (
+            <>
+            {/* Product Table */}
+            <ScrollReveal>
+              <div className={styles.productTable}>
+                <div className={styles.tableHeader}>
+                  <span>Product</span>
+                  <span>Key Specs</span>
+                  <span>Trend</span>
+                  <span style={{ textAlign: 'right' }}>Marketplace Price</span>
+                </div>
 
-              {mockProducts.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  variants={staggerItem}
-                  initial="hidden"
-                  animate="visible"
-                  transition={{ delay: index * 0.08 }}
-                >
-                  <Link href={`/products/${product.slug}`} className={styles.tableRow}>
-                    {/* Product */}
-                    <div className={styles.productCell}>
-                      <div className={styles.productThumb}>
-                        <Image src={product.image} alt={product.name} width={40} height={40} />
-                      </div>
-                      <div className={styles.productMeta}>
-                        <h3>{product.name}</h3>
-                        <div className={styles.productMetaSub}>
-                          <span className={styles.metaTag}>{product.brand}</span>
-                          <span className={styles.metaTag}>{product.category}</span>
+                {products.map((product, index) => {
+                  const bestPrice = product.affiliate_products.length > 0 
+                      ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0)) 
+                      : Number(product.price) || 0;
+                  
+                  const imgUrl = product.affiliate_products.find(p => p.image_url)?.image_url || '/placeholder.png';
+                  
+                  const specs = product.specs || {};
+                  
+                  return (
+                    <motion.div
+                      key={product.id}
+                      variants={staggerItem}
+                      initial="hidden"
+                      animate="visible"
+                      transition={{ delay: index * 0.08 }}
+                    >
+                      <Link href={`/products/${product.slug}`} className={styles.tableRow}>
+                        {/* Product */}
+                        <div className={styles.productCell}>
+                          <div className={styles.productThumb}>
+                            <img
+                              src={imgUrl}
+                              alt={product.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/40?text=No+Image'; }}
+                            />
+                          </div>
+                          <div className={styles.productMeta}>
+                            <h3>{product.name}</h3>
+                            <div className={styles.productMetaSub}>
+                              <span className={styles.metaTag}>{specs.brand || 'Unknown'}</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </div>
 
-                    {/* Specs */}
-                    <div className={styles.specsCell}>
-                      {Object.entries(product.specs).slice(0, 3).map(([key, val]) => (
-                        <span key={key} className={styles.specItem}>
-                          <span className={styles.specIcon}>•</span> {val}
-                        </span>
-                      ))}
-                    </div>
+                        {/* Specs */}
+                        <div className={styles.specsCell}>
+                          {Object.entries(specs).slice(0, 3).map(([key, val]) => (
+                            <span key={key} className={styles.specItem}>
+                              <span className={styles.specIcon}>•</span> {String(val)}
+                            </span>
+                          ))}
+                        </div>
 
-                    {/* Trend */}
-                    <div className={styles.trendCell}>
-                      <svg className={styles.sparkline} viewBox="0 0 80 30">
-                        <polyline
-                          points={product.priceHistory
-                            .map((p, i) => `${(i / (product.priceHistory.length - 1)) * 76 + 2},${30 - ((p.price - Math.min(...product.priceHistory.map(h => h.price))) / (Math.max(...product.priceHistory.map(h => h.price)) - Math.min(...product.priceHistory.map(h => h.price)) || 1)) * 26}`)
-                            .join(' ')}
-                          fill="none"
-                          stroke={product.trend === 'down' ? '#10B981' : product.trend === 'up' ? '#EF4444' : '#9CA3AF'}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                      <span
-                        className={styles.trendLabel}
-                        style={{ color: product.trend === 'down' ? '#10B981' : product.trend === 'up' ? '#EF4444' : '#9CA3AF' }}
-                      >
-                        {product.trend === 'down' ? `↓ ${product.trendPercent}% drop` : product.trend === 'up' ? `↑ ${product.trendPercent}%` : '— Stable'}
-                      </span>
-                    </div>
+                        {/* Trend */}
+                        <div className={styles.trendCell}>
+                          <span
+                            className={styles.trendLabel}
+                            style={{ color: '#9CA3AF' }}
+                          >
+                            Score: {product.trending_score || 'N/A'}
+                          </span>
+                        </div>
 
-                    {/* Price */}
-                    <div className={styles.priceCell}>
-                      <span className={styles.priceCellValue}>
-                        ${product.prices[0].price.toLocaleString()}
-                      </span>
-                      <div className={styles.priceActions}>
-                        <span className={styles.detailsBtn}>Details</span>
-                        <span
-                          className={styles.marketplaceBtn}
-                          style={{ background: product.prices[0].color }}
-                        >
-                          {product.prices[0].marketplace} →
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
+                        {/* Price */}
+                        <div className={styles.priceCell}>
+                          {bestPrice > 0 ? (
+                            <span className={styles.priceCellValue}>
+                              ${bestPrice.toLocaleString()}
+                            </span>
+                          ) : (
+                            <span className={styles.priceCellValue}>
+                              View Prices
+                            </span>
+                          )}
+                          <div className={styles.priceActions}>
+                            <span className={styles.detailsBtn}>Details</span>
+                            {product.affiliate_products.length > 0 && (
+                            <span
+                              className={styles.marketplaceBtn}
+                              style={{ background: '#2563EB' }}
+                            >
+                              {product.affiliate_products[0].source_name} →
+                            </span>
+                            )}
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  )
+                })}
+              </div>
+            </ScrollReveal>
+
+            {/* Pagination */}
+            <div className={styles.pagination}>
+              <span className={styles.pageInfo}>Showing 1 to {products.length} results</span>
+              {[1, 2, 3, '...'].map((p, i) => (
+                <button
+                  key={i}
+                  style={{
+                    width: 32,
+                    height: 32,
+                    border: p === 1 ? 'none' : '1px solid var(--border)',
+                    borderRadius: 'var(--radius-sm)',
+                    background: p === 1 ? 'var(--primary)' : 'white',
+                    color: p === 1 ? 'white' : 'var(--text-secondary)',
+                    cursor: 'pointer',
+                    fontSize: 13,
+                    fontWeight: 500,
+                  }}
+                >
+                  {p}
+                </button>
               ))}
             </div>
-          </ScrollReveal>
-
-          {/* Pagination */}
-          <div className={styles.pagination}>
-            <span className={styles.pageInfo}>Showing 1 to {mockProducts.length} of 142 results</span>
-            {[1, 2, 3, '...', 12].map((p, i) => (
-              <button
-                key={i}
-                style={{
-                  width: 32,
-                  height: 32,
-                  border: p === 1 ? 'none' : '1px solid var(--border)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: p === 1 ? 'var(--primary)' : 'white',
-                  color: p === 1 ? 'white' : 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontSize: 13,
-                  fontWeight: 500,
-                }}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       </div>
     </AnimatedPage>

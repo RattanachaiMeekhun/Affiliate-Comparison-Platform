@@ -9,14 +9,31 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockCategories, mockProducts } from '@/util/mockData';
+import { fetchProducts, Product } from '@/lib/api';
+import { mockCategories } from '@/util/mockData';
 import styles from './page.module.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const tabFilters = ['GPUs', 'Laptops', 'Monitors'];
+const tabFilters = ['All Categories']; // Simplified for real data
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState('GPUs');
+  const [activeTab, setActiveTab] = useState('All Categories');
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const prods = await fetchProducts();
+        setProducts(prods);
+      } catch (err) {
+        console.error("Error loading home page data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    loadData();
+  }, []);
 
   return (
     <AnimatedPage>
@@ -77,22 +94,22 @@ export default function HomePage() {
               </p>
             </div>
             <Link href="/setup-builder" className={styles.viewAll}>
-              View all niches <ArrowRightOutlined />
+              Setup Builder <ArrowRightOutlined />
             </Link>
           </div>
         </ScrollReveal>
 
         <StaggerWrapper className={styles.categoryGrid}>
-          {mockCategories.slice(0, 3).map((cat) => (
-            <StaggerChild key={cat.id}>
+          {mockCategories.map((category) => (
+            <StaggerChild key={category.id}>
               <motion.div whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  href={`/category/${cat.slug}`}
+                  href={`/category/${category.slug}`}
                   className={styles.categoryCard}
                 >
-                  <div className={styles.categoryIcon}>{cat.icon}</div>
-                  <h3 className={styles.categoryName}>{cat.name}</h3>
-                  <p className={styles.categoryDesc}>{cat.description}</p>
+                  <div className={styles.categoryIcon}>{category.icon}</div>
+                  <h3 className={styles.categoryName}>{category.name}</h3>
+                  <p className={styles.categoryDesc}>{category.description}</p>
                 </Link>
               </motion.div>
             </StaggerChild>
@@ -121,70 +138,71 @@ export default function HomePage() {
           </div>
         </ScrollReveal>
 
-        <StaggerWrapper className={styles.productGrid}>
-          {mockProducts.slice(0, 4).map((product) => (
-            <StaggerChild key={product.id}>
-              <motion.div whileHover={{ y: -5 }} whileTap={{ scale: 0.98 }}>
-                <Link
-                  href={`/products/${product.slug}`}
-                  className={styles.productCard}
-                >
-                  {product.tags[0] && (
-                    <div className={styles.productBadge}>
-                      <span
-                        className={`badge ${
-                          product.tags[0] === 'Hot Deal'
-                            ? 'badge-danger'
-                            : 'badge-primary'
-                        }`}
-                      >
-                        {product.tags[0]}
-                      </span>
-                    </div>
-                  )}
-                  <div className={styles.productImage}>
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      width={120}
-                      height={120}
-                    />
-                  </div>
-                  <div className={styles.productInfo}>
-                    <h3 className={styles.productName}>{product.name}</h3>
-                    <div className={styles.productPrice}>
-                      <span className={styles.priceValue}>
-                        ${product.prices[0].price.toLocaleString()}
-                      </span>
-                      {product.prices[0].originalPrice && (
-                        <span className={styles.priceOriginal}>
-                          ${product.prices[0].originalPrice.toLocaleString()}
-                        </span>
-                      )}
-                    </div>
-                    <div
-                      className={`${styles.productTrend} ${
-                        product.trend === 'down'
-                          ? styles.trendDown
-                          : product.trend === 'up'
-                          ? styles.trendUp
-                          : styles.trendStable
-                      }`}
+        {isLoading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>Loading products...</div>
+        ) : (
+          <StaggerWrapper className={styles.productGrid}>
+            {products.slice(0, 8).map((product) => {
+              const bestPrice = product.affiliate_products.length > 0 
+                  ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0)) 
+                  : Number(product.price) || 0;
+              
+              const imgUrl = product.image_url || '/placeholder.png'; // Assume placeholder exists or fails gracefully
+              console.log({product,imgUrl});
+              
+              return (
+                <StaggerChild key={product.id}>
+                  <motion.div whileHover={{ y: -5 }} whileTap={{ scale: 0.98 }}>
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className={styles.productCard}
                     >
-                      {product.trend === 'down' && '↓'}
-                      {product.trend === 'up' && '↑'}
-                      {product.trend === 'stable' && '—'}
-                      {product.trendPercent > 0
-                        ? ` ${product.trendPercent}% this week`
-                        : ' Stable price'}
-                    </div>
-                  </div>
-                </Link>
-              </motion.div>
-            </StaggerChild>
-          ))}
-        </StaggerWrapper>
+                      {product.best_value && (
+                        <div className={styles.productBadge}>
+                          <span
+                            className="badge badge-danger"
+                          >
+                            Best Value
+                          </span>
+                        </div>
+                      )}
+                      <div className={styles.productImage}>
+                        {/* Fallback image if cross-domain error */}
+                        <img
+                          src={imgUrl}
+                          alt={product.name}
+                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                          onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/120?text=No+Image'; }}
+                        />
+                      </div>
+                      <div className={styles.productInfo}>
+                        <h3 className={styles.productName}>{product.name}</h3>
+                        <div className={styles.productPrice}>
+                           {bestPrice > 0 ? (
+                            <span className={styles.priceValue}>
+                            ${bestPrice.toLocaleString()}
+                            </span>
+                           ) : (
+                            <span className={styles.priceValue}>
+                            View Prices
+                            </span>
+                           )}
+                        </div>
+                        <div
+                          className={`${styles.productTrend} ${styles.trendStable}`}
+                        >
+                          — Trending Score: {Number(product.trending_score) || 'N/A'}
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                </StaggerChild>
+              )
+            })}
+          </StaggerWrapper>
+        )}
       </div>
     </AnimatedPage>
   );
 }
+

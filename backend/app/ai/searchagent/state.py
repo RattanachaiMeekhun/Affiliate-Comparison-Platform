@@ -16,9 +16,9 @@ class SearchAgentState(TypedDict):
     price: float
     currency: str
     source: str
-    # ── eBay integration fields ──
-    ebay_results: Optional[List[dict]]  # Normalized eBay listings
-    ebay_raw: Optional[str]  # Raw JSON string from eBay tool
+    # ── Google Shopping / Serper integration fields ──
+    serper_results: Optional[List[dict]]  # Normalized Serper listings
+    serper_raw: Optional[str]  # Raw JSON string from Serper tool
 
     # ── Web search (Shopee/Lazada fallback) ──
     web_results: Optional[List[dict]]

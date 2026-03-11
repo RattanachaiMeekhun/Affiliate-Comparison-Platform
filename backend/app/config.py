@@ -29,16 +29,20 @@ class Settings(BaseSettings):
         "HARM_CATEGORY_HATE_SPEECH": "BLOCK_MEDIUM_AND_ABOVE",
     }
 
-    # eBay Browse API
-    EBAY_CLIENT_ID: str | None = None
-    EBAY_CLIENT_SECRET: str | None = None
-    EBAY_SANDBOX: bool | None = True  # "true" = sandbox, "false" = production
-    EBAY_MARKETPLACE_ID: str = "EBAY_TH"  # e.g. EBAY_US, EBAY_GB, EBAY_AU
+    # Serper API
+    SERPER_API_KEY: str | None = None
 
     # Auth
     JWT_SECRET_KEY: str | None = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+    # Cloudflare R2
+    R2_ACCOUNT_ID: str | None = None
+    R2_ACCESS_KEY_ID: str | None = None
+    R2_SECRET_ACCESS_KEY: str | None = None
+    R2_BUCKET_NAME: str | None = None
+    R2_PUBLIC_URL: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

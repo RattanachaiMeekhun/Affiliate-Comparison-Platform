@@ -33,8 +33,13 @@ def create_products(db: Session, products_data: list[dict]):
             "category_id",
             "price",
             "currency",
+            "image_url",
         ]
         p_data = {k: v for k, v in data.items() if k in product_keys}
+
+        # Enforce HTTPS on product image
+        if p_data.get("image_url") and not p_data["image_url"].startswith("https://"):
+            p_data["image_url"] = None
 
         db_product = models.Product(**p_data)
 
@@ -51,8 +56,22 @@ def create_products(db: Session, products_data: list[dict]):
             ]
             # Some prompts might return price as image_url or generic data, try to be safe
             a_data = {k: v for k, v in aff.items() if k in aff_keys}
+
+            # Enforce HTTPS on affiliate image
+            if a_data.get("image_url") and not a_data["image_url"].startswith(
+                "https://"
+            ):
+                a_data["image_url"] = None
+
             db_aff = models.AffiliateProduct(**a_data)
             db_product.affiliate_products.append(db_aff)
+
+        # Pick first image logic: if product has no image, use the first affiliate image
+        if not db_product.image_url:
+            for aff in db_product.affiliate_products:
+                if aff.image_url:
+                    db_product.image_url = aff.image_url
+                    break
 
         db.add(db_product)
         db_products.append(db_product)
@@ -62,6 +81,13 @@ def create_products(db: Session, products_data: list[dict]):
     for p in db_products:
         db.refresh(p)
     return db_products
+
+
+def update_products(db: Session, products: List[models.Product]):
+    db.commit()
+    for product in products:
+        db.refresh(product)
+    return products
 
 
 def get_all_product_names(db: Session):
@@ -75,6 +101,12 @@ def get_product_names_by_category(db: Session, category_id: uuid.UUID):
         .filter(models.Product.category_id == category_id)
         .all()
     ]
+
+
+def get_products_by_category(db: Session, category_id: uuid.UUID):
+    return (
+        db.query(models.Product).filter(models.Product.category_id == category_id).all()
+    )
 
 
 def get_category(db: Session, category_id: uuid.UUID):

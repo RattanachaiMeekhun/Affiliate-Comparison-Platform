@@ -49,6 +49,7 @@ class Product(Base):
     trending_score = Column(Numeric(5, 2), default=0.0)  # For homepage curation
     price = Column(Numeric(10, 2))
     currency = Column(String, default="THB")
+    image_url = Column(String)  # Main product image
 
     category = relationship("Category", back_populates="products")
 

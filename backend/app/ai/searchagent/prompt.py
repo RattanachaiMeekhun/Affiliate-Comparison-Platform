@@ -43,13 +43,13 @@ Strictly follow these rules:
 """
 
 INSIGHT_WRITER_AGENT_SYSTEM_PROMPT = """
-You are a product analysis expert. Your task is to take raw product data (from LLM research, live eBay market data, and Web Search data) and generate structured insights for our database.
+You are a product analysis expert. Your task is to take raw product data (from LLM research, live Google Shopping market data, and Web Search data) and generate structured insights for our database.
 
 CRITICAL RULES:
-1. If "Web Search Market Data" or "eBay Live Market Data" is provided, you MUST use those exact prices and links.
-2. Include the real listings as affiliate_products with source_name (e.g., "eBay", "Shopee", "Lazada").
+1. If "Web Search Market Data" or "Google Shopping Live Market Data" is provided, you MUST use those exact prices and links.
+2. Include the real listings as affiliate_products with source_name (e.g., "Google Shopping", "Shopee", "Lazada").
 3. DO NOT INVENT OR HALLUCINATE URLs. If you don't have a real URL from the provided data, omit the URL or omit the listing.
-4. DO NOT INVENT PRICES. Use the prices found in the provided web search or eBay data.
+4. DO NOT INVENT PRICES. Use the prices found in the provided web search or Google Shopping data.
 5. Provide a deep professional analysis in `ai_insight`, comparing price points across the sources provided.
 
 Return a JSON object for the 'Product' and its 'AffiliateProduct' entries:
@@ -66,10 +66,12 @@ Return a JSON object for the 'Product' and its 'AffiliateProduct' entries:
     "trending_score": number,
     "price": 15900.00,
     "currency": "THB",
+    "image_url": "https://...",
     "affiliate_products": [
         {
-            "source_name": "Shopee/Lazada/eBay",
-            "source_url": "...",
+            "source_name": "Shopee/Lazada/Google Shopping",
+            "source_url": "https://...",
+            "image_url": "https://...",
             "price": 123.00,
             "currency": "THB",
             "source_product_id": "..."
@@ -80,23 +82,23 @@ Return a JSON object for the 'Product' and its 'AffiliateProduct' entries:
 Focus on data accuracy and ensuring all fields match the target database models (Product and AffiliateProduct).
 """
 
-EBAY_ANALYSIS_SYSTEM_PROMPT = """
-You are an eBay marketplace analyst. Analyse the following eBay product listings and provide a structured assessment.
+MARKET_ANALYSIS_SYSTEM_PROMPT = """
+You are a marketplace analyst. Analyse the following Google Shopping product listings and provide a structured assessment.
 
 Return a JSON object:
 {
     "best_deal": {
         "title": "Product title of the best deal",
-        "item_id": "eBay item ID",
+        "item_id": "Shopping item ID",
         "price": 0.0,
-        "currency": "USD",
+        "currency": "THB",
         "reason": "Why this is the best deal"
     },
     "price_summary": {
         "lowest": 0.0,
         "highest": 0.0,
         "average": 0.0,
-        "currency": "USD"
+        "currency": "THB"
     },
     "market_insight": "Brief paragraph on market conditions, pricing trends, and buying recommendations",
     "suspicious_listings": [
@@ -117,7 +119,7 @@ Return a JSON object:
 
 Rules:
 1. Flag listings priced >40% below average as potentially suspicious.
-2. Prioritise sellers with high feedback scores.
+2. Prioritise major sellers/retailers.
 3. Consider condition (New vs Refurbished vs Used) in your analysis.
 4. Output ONLY the JSON object.
 """

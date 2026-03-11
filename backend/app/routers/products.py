@@ -1,7 +1,8 @@
+from app.services import SerperService
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
-from .. import crud, schemas, database
+from .. import crud, schemas, database, models
 from app.ai.searchagent import build_search_graph, TokenTracker, set_tracker
 from langchain_core.messages import HumanMessage
 from app.ai.helper import _parse_json_response
@@ -11,6 +12,7 @@ import uuid
 import json
 from langchain_core.messages import SystemMessage
 from app.ai.llm import LLMProvider
+from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/products", tags=["products"])
 
@@ -28,6 +30,77 @@ def read_product(product_id: str, db: Session = Depends(database.get_db)):
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return db_product
+
+
+@router.post("/sync-images")
+async def sync_images(
+    re_search: bool = False, limit: int = 50, db: Session = Depends(database.get_db)
+):
+    """
+    Sync missing product images from existing affiliate listings.
+    If re_search is True, it will also try to find new listings via the AI agent
+    for products that still have no image.
+    """
+    products = (
+        db.query(models.Product)
+        .filter(models.Product.image_url == None)
+        .limit(limit)
+        .all()
+    )
+    updated_count = 0
+    searched_count = 0
+
+    workflow = build_search_graph()
+    storage = StorageService()
+
+    for product in products:
+        # 1. Try existing affiliates
+        for aff in product.affiliate_products:
+            if aff.image_url and aff.image_url.startswith("https://"):
+                product.image_url = aff.image_url
+                updated_count += 1
+                break
+
+        # 2. Re-search if still missing and re_search is True
+        if not product.image_url and re_search:
+            try:
+                state = await workflow.ainvoke(
+                    {"messages": [HumanMessage(content=product.name)]}
+                )
+                last_specs = state.get("specs", "")
+                data = _parse_json_response(last_specs)
+
+                if data:
+                    # Look for main image in parsed JSON
+                    new_img = None
+                    if isinstance(data, dict):
+                        new_img = data.get("image_url") or (
+                            data.get("product", {})
+                            if isinstance(data.get("product"), dict)
+                            else {}
+                        ).get("image_url")
+
+                    if new_img and new_img.startswith("https://"):
+                        # Upload to R2
+                        r2_url = await storage.upload_image_from_url(
+                            new_img, product.slug
+                        )
+                        product.image_url = r2_url
+                        updated_count += 1
+                        searched_count += 1
+
+                    # Also update/add affiliate products (CRUD does this but we need logic here)
+                    # For simplicity, we just update the main image for now in this sync
+            except Exception as e:
+                print(f"Failed to re-search image for {product.name}: {e}")
+
+    db.commit()
+    return {
+        "status": "success",
+        "products_checked": len(products),
+        "images_updated": updated_count,
+        "ai_searches_performed": searched_count,
+    }
 
 
 @router.post("/feed-new-products")
@@ -51,6 +124,7 @@ async def feed_new_products(products: str, db: Session = Depends(database.get_db
     print(f"📦 Processing {len(product_names)} products individually...")
 
     workflow = build_search_graph()
+    storage = StorageService()
     all_results = []
     errors = []
     token_usage_per_product = []
@@ -99,6 +173,20 @@ async def feed_new_products(products: str, db: Session = Depends(database.get_db
             else:
                 errors.append({"product": name, "error": "Invalid data format"})
                 continue
+
+            # Upload images to R2
+            for item in processed:
+                if item.get("image_url"):
+                    item["image_url"] = await storage.upload_image_from_url(
+                        item["image_url"], item["slug"]
+                    )
+
+                if "affiliate_products" in item:
+                    for aff in item["affiliate_products"]:
+                        if aff.get("image_url"):
+                            aff["image_url"] = await storage.upload_image_from_url(
+                                aff["image_url"], item["slug"]
+                            )
 
             # ── 3. Save to DB ──
             saved = crud.create_products(db, processed)
@@ -176,6 +264,7 @@ async def feed_category_products(
     existing_product_names = set(crud.get_all_product_names(db))
 
     workflow = build_search_graph()
+    storage = StorageService()
     llm = LLMProvider.get_model(temperature=0.7)
 
     all_results = []
@@ -301,6 +390,20 @@ CRITICAL RULES:
                     errors.append({"product": name, "error": "Invalid data format"})
                     continue
 
+                # Upload images to R2
+                for item in processed:
+                    if item.get("image_url"):
+                        item["image_url"] = await storage.upload_image_from_url(
+                            item["image_url"], item["slug"]
+                        )
+
+                    if "affiliate_products" in item:
+                        for aff in item["affiliate_products"]:
+                            if aff.get("image_url"):
+                                aff["image_url"] = await storage.upload_image_from_url(
+                                    aff["image_url"], item["slug"]
+                                )
+
                 saved = crud.create_products(db, processed)
 
                 # Convert to a stable dictionary representation before the next commit
@@ -329,3 +432,78 @@ CRITICAL RULES:
         "products": all_results,
         "errors": errors,
     }
+
+
+@router.patch("/update-images", response_model=schemas.ProductImageUpdateResponse)
+async def update_product_images(
+    category_name: str,
+    db: Session = Depends(database.get_db),
+):
+    try:
+        """
+        Update images for existing products.
+        Searches for new images if none exist or if the current one is invalid.
+        """
+        categories = crud.get_categories_by_names(db, category_name)
+        if not categories:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        products = crud.get_products_by_category(db, categories[0].id)
+        storage = StorageService()
+        serper = SerperService()
+
+        updated_products = []
+        errors = []
+
+        for product in products:
+            try:
+                # Check if we need to update the image
+                needs_update = False
+                if not product.image_url or not product.image_url.startswith("http"):
+                    needs_update = True
+                else:
+                    # Optional: Add a check here to verify if the current image URL is still valid
+                    # For now, we'll just update if it's missing or invalid format
+                    pass
+
+                if needs_update:
+                    # Search for a new image
+                    search_query = f"{product.name} product image"
+                    new_image_url = await serper.search_image(search_query)
+
+                    if new_image_url and new_image_url.startswith("http"):
+                        # Upload to R2
+                        try:
+                            updated_url = await storage.upload_image_from_url(
+                                new_image_url, product.slug
+                            )
+                            product.image_url = updated_url
+                            updated_products.append(product)
+                            print(f"✅ Updated image for '{product.name}'")
+                        except Exception as e:
+                            errors.append({"product": product.name, "error": str(e)})
+                            print(
+                                f"❌ Failed to upload image for '{product.name}': {e}"
+                            )
+                    else:
+                        errors.append(
+                            {"product": product.name, "error": "No valid image found"}
+                        )
+                        print(f"❌ No valid image found for '{product.name}'")
+
+            except Exception as e:
+                errors.append({"product": product.name, "error": str(e)})
+                print(f"❌ Error processing '{product.name}': {e}")
+
+        # Save all updated products
+        if updated_products:
+            crud.update_products(db, updated_products)
+
+        return {
+            "total_updated": len(updated_products),
+            "total_errors": len(errors),
+            "products": updated_products,
+            "errors": errors,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

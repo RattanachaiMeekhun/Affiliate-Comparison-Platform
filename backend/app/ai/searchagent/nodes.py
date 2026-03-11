@@ -5,9 +5,9 @@ from app.ai.searchagent.state import SearchAgentState
 from app.ai.searchagent.prompt import (
     SEARCH_AGENT_SYSTEM_PROMPT,
     INSIGHT_WRITER_AGENT_SYSTEM_PROMPT,
-    EBAY_ANALYSIS_SYSTEM_PROMPT,
+    MARKET_ANALYSIS_SYSTEM_PROMPT,
 )
-from app.services.ebay_service import EbayService
+from app.services.serper_service import SerperService
 from app.config import settings
 
 
@@ -97,20 +97,22 @@ def search_node(state: SearchAgentState) -> SearchAgentState:
 
 def insight_writer_node(state: SearchAgentState) -> SearchAgentState:
     """
-    Generate polished product insights from LLM + eBay data + Web Data.
+    Generate polished product insights from LLM + Serper data + Web Data.
     """
     print("--- RUNNING INSIGHT WRITER NODE ---")
 
-    # Build context that includes eBay data when available
+    # Build context that includes Serper Data when available
     context_parts = []
 
     # Original LLM search data
     if state.get("specs"):
         context_parts.append(f"### LLM Product Data\n{state['specs']}")
 
-    # eBay market data
-    if state.get("ebay_raw") and state.get("ebay_raw") != "[]":
-        context_parts.append(f"### eBay Live Market Data\n{state['ebay_raw']}")
+    # Serper market data
+    if state.get("serper_raw") and state.get("serper_raw") != "[]":
+        context_parts.append(
+            f"### Google Shopping Live Market Data\n{state['serper_raw']}"
+        )
 
     # Shopee/Lazada web market data
     if state.get("web_raw") and state.get("web_raw") != "[]":
@@ -145,7 +147,7 @@ def insight_writer_node(state: SearchAgentState) -> SearchAgentState:
 
 
 # ──────────────────────────────────────────────
-# New: Web search node (fallback for Shopee/Lazada)
+# Web search node (fallback for Shopee/Lazada)
 # ──────────────────────────────────────────────
 def web_search_node(state: SearchAgentState) -> SearchAgentState:
     """
@@ -185,19 +187,19 @@ def web_search_node(state: SearchAgentState) -> SearchAgentState:
 
 
 # ──────────────────────────────────────────────
-# New: eBay search node (3) — no LLM tokens
+# New: Serper search node (3) — no LLM tokens
 # ──────────────────────────────────────────────
-async def ebay_search_node(state: SearchAgentState) -> SearchAgentState:
+async def serper_search_node(state: SearchAgentState) -> SearchAgentState:
     """
-    Fetch real product listings from eBay Browse API.
+    Fetch real product listings from Serper Google Shopping API.
     Runs in parallel with the LLM search node.
     """
-    print("--- RUNNING EBAY SEARCH NODE ---")
+    print("--- RUNNING SERPER SEARCH NODE ---")
 
-    # Guard: skip if eBay credentials are not configured
-    if not settings.EBAY_CLIENT_ID or not settings.EBAY_CLIENT_SECRET:
-        print("    ⚠ eBay credentials not set – skipping eBay search")
-        return {"ebay_results": [], "ebay_raw": "[]"}
+    # Guard: skip if Serper credentials are not configured
+    if not settings.SERPER_API_KEY:
+        print("    ⚠ Serper API key not set – skipping Google Shopping search")
+        return {"serper_results": [], "serper_raw": "[]"}
 
     # Extract query from the user message
     query = ""
@@ -210,9 +212,9 @@ async def ebay_search_node(state: SearchAgentState) -> SearchAgentState:
             break
 
     if not query:
-        return {"ebay_results": [], "ebay_raw": "[]"}
+        return {"serper_results": [], "serper_raw": "[]"}
 
-    service = EbayService()
+    service = SerperService()
     try:
         raw_response = await service.search_products(query, limit=15)
         normalized = service.normalize_search_results(raw_response)
@@ -225,41 +227,40 @@ async def ebay_search_node(state: SearchAgentState) -> SearchAgentState:
                     "title": item["raw_data"]["title"],
                     "price": item["price"],
                     "currency": item["currency"],
-                    "condition": item["raw_data"]["condition"],
-                    "seller": item["raw_data"]["seller_username"],
+                    "seller": item["raw_data"]["seller"],
                     "url": item["source_url"],
                     "item_id": item["source_product_id"],
                 }
             )
 
-        ebay_json = json.dumps(slim_items, ensure_ascii=False)
-        print(f"    ✓ Found {len(normalized)} eBay listings (0 LLM tokens)")
+        serper_json = json.dumps(slim_items, ensure_ascii=False)
+        print(f"    ✓ Found {len(normalized)} Google Shopping listings (0 LLM tokens)")
 
-        return {"ebay_results": normalized, "ebay_raw": ebay_json}
+        return {"serper_results": normalized, "serper_raw": serper_json}
     except Exception as e:
-        print(f"    ✗ eBay search failed: {e}")
-        return {"ebay_results": [], "ebay_raw": "[]"}
+        print(f"    ✗ Google Shopping search failed: {e}")
+        return {"serper_results": [], "serper_raw": "[]"}
 
 
 # ──────────────────────────────────────────────
-# New: eBay analysis node (4)
+# New: Serper analysis node (4)
 # ──────────────────────────────────────────────
-def ebay_analysis_node(state: SearchAgentState) -> SearchAgentState:
+def serper_analysis_node(state: SearchAgentState) -> SearchAgentState:
     """
-    Use LLM to analyse eBay results: rank by value, flag suspicious sellers,
+    Use LLM to analyse Google Shopping results: rank by value, flag suspicious sellers,
     suggest best deals. This enriches the final output.
     """
-    print("--- RUNNING EBAY ANALYSIS NODE ---")
+    print("--- RUNNING SERPER ANALYSIS NODE ---")
 
-    ebay_raw = state.get("ebay_raw", "[]")
-    if ebay_raw == "[]" or not ebay_raw:
-        print("    ⚠ No eBay data – skipping analysis (0 LLM tokens)")
+    serper_raw = state.get("serper_raw", "[]")
+    if serper_raw == "[]" or not serper_raw:
+        print("    ⚠ No Shopping data – skipping analysis (0 LLM tokens)")
         return {"combined_analysis": state.get("specs", "")}
 
     messages = [
         SystemMessage(
-            content=EBAY_ANALYSIS_SYSTEM_PROMPT
-            + f"\n\n--- EBAY LISTINGS ---\n{ebay_raw}"
+            content=MARKET_ANALYSIS_SYSTEM_PROMPT
+            + f"\n\n--- GOOGLE SHOPPING LISTINGS ---\n{serper_raw}"
         )
     ] + state["messages"]
 
@@ -267,6 +268,6 @@ def ebay_analysis_node(state: SearchAgentState) -> SearchAgentState:
     response = llm.invoke(messages)
 
     if _tracker:
-        _tracker.record("ebay_analysis", response)
+        _tracker.record("serper_analysis", response)
 
     return {"combined_analysis": response.content}

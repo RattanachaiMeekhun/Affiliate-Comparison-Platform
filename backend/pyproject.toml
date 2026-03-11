@@ -28,6 +28,8 @@ dependencies = [
     "python-multipart",
     "passlib[bcrypt]",
     "bcrypt",
+    "boto3",
+    "aiohttp",
 ]
 
 [dependency-groups]

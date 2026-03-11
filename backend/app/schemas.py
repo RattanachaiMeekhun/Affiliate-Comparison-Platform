@@ -63,6 +63,7 @@ class ProductBase(BaseModel):
     trending_score: Decimal = Decimal("0.0")
     price: Optional[Decimal] = None
     currency: str = "THB"
+    image_url: Optional[str] = None
 
 
 class ProductCreate(ProductBase):
@@ -77,3 +78,10 @@ class Product(ProductBase):
 
     class Config:
         from_attributes = True
+
+
+class ProductImageUpdateResponse(BaseModel):
+    total_updated: int
+    total_errors: int
+    products: List[Product]
+    errors: List[dict]

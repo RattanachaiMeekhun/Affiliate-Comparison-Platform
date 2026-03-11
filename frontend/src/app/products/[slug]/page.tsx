@@ -1,48 +1,86 @@
 'use client';
 
-import Image from 'next/image';
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BellOutlined, SettingOutlined, CheckCircleFilled, CloseCircleFilled } from '@ant-design/icons';
+import { BellOutlined, SettingOutlined, CheckCircleFilled, CloseCircleFilled, InfoCircleOutlined, ShopOutlined } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal } from '@/components/AnimatedLayout/AnimatedLayout';
-import { mockDellProduct } from '@/util/mockData';
+import { fetchProducts, Product, Category, fetchCategories } from '@/lib/api';
 import styles from './page.module.css';
 
-const chartTabs = ['1W', '1M', '3M', 'YTD'];
-
 export default function ProductDetailPage() {
-  const product = mockDellProduct;
+  const params = useParams();
+  const slug = params.slug as string;
 
-  // Build chart path
-  const points = product.priceHistory;
-  const minP = Math.min(...points.map(p => p.price));
-  const maxP = Math.max(...points.map(p => p.price));
-  const range = maxP - minP || 1;
-  const svgWidth = 700;
-  const svgHeight = 180;
-  const pad = 20;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [category, setCategory] = useState<Category | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const linePath = points
-    .map((p, i) => {
-      const x = pad + (i / (points.length - 1)) * (svgWidth - pad * 2);
-      const y = pad + (1 - (p.price - minP) / range) * (svgHeight - pad * 2);
-      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
-    })
-    .join(' ');
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const [allProds, allCats] = await Promise.all([fetchProducts(), fetchCategories()]);
+        
+        const foundProd = allProds.find(p => p.slug === slug);
+        if (foundProd) {
+          setProduct(foundProd);
+          
+          if (foundProd.category_id) {
+            const foundCat = allCats.find(c => c.id === foundProd.category_id);
+            if (foundCat) setCategory(foundCat);
+          }
+        }
+      } catch (err) {
+        console.error("Error loading product page data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    if (slug) {
+      loadData();
+    }
+  }, [slug]);
 
-  const areaPath = linePath +
-    ` L ${pad + (svgWidth - pad * 2)} ${svgHeight - pad}` +
-    ` L ${pad} ${svgHeight - pad} Z`;
+  if (isLoading) {
+    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Loading product...</div></AnimatedPage>;
+  }
+
+  if (!product) {
+    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Product not found</div></AnimatedPage>;
+  }
+
+  const specs = product.specs || {};
+  const bestPrice = product.affiliate_products.length > 0
+    ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0))
+    : Number(product.price) || 0;
+  
+  const imgUrl = product.image_url || product.affiliate_products.find(p => p.image_url)?.image_url || '/placeholder.png';
+
+  // Parse AI insight if it's a JSON string, otherwise just display it as text
+  let aiVerdict: any = null;
+  if (product.ai_insight) {
+    try {
+      aiVerdict = JSON.parse(product.ai_insight);
+    } catch {
+      // It's just text
+    }
+  }
 
   return (
     <AnimatedPage>
       <div className={styles.pageContainer}>
         {/* Breadcrumbs */}
         <div className={styles.breadcrumbs}>
-          <a href="/">Home</a>
+          <Link href="/">Home</Link>
           <span className={styles.breadcrumbSep}>›</span>
-          <a href="/compare">Laptops</a>
-          <span className={styles.breadcrumbSep}>›</span>
-          <a href="/category/gaming">Gaming</a>
+          <Link href="/categories">Categories</Link>
+          {category && (
+            <>
+              <span className={styles.breadcrumbSep}>›</span>
+              <Link href={`/category/${category.slug}`}>{category.name}</Link>
+            </>
+          )}
           <span className={styles.breadcrumbSep}>›</span>
           <span className={styles.breadcrumbCurrent}>{product.name}</span>
         </div>
@@ -58,16 +96,24 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6 }}
             >
               <div className={styles.heroImage}>
-                <Image src={product.image} alt={product.name} width={200} height={150} />
+                <img 
+                  src={imgUrl} 
+                  alt={product.name} 
+                  style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }}
+                  referrerPolicy="no-referrer"
+                />
               </div>
               <div className={styles.heroBadges}>
-                {product.tags.map((tag) => (
-                  <span key={tag} className="badge badge-primary">{tag}</span>
-                ))}
+                {product.best_value && (
+                  <span className="badge badge-danger">Best Value</span>
+                )}
+                {specs.brand && (
+                  <span className="badge badge-primary">{specs.brand}</span>
+                )}
               </div>
               <h1 className={styles.heroProductName}>{product.name}</h1>
               <p className={styles.heroSpecs}>
-                {product.specs.CPU} • {product.specs.GPU} • {product.specs.RAM}
+                {Object.entries(specs).slice(0, 4).map(([k,v]) => `${k}: ${v}`).join(' • ')}
               </p>
             </motion.div>
 
@@ -75,30 +121,20 @@ export default function ProductDetailPage() {
             <ScrollReveal>
               <div className={styles.ratingPriceBar}>
                 <div className={styles.ratingBlock}>
-                  <span className={styles.ratingScore}>{product.rating}</span>
-                  <div className={styles.ratingStars}>
-                    <div className={styles.starsRow}>
-                      {[1, 2, 3, 4, 5].map((i) => (
-                        <div
-                          key={i}
-                          className={`${styles.star} ${i > Math.round(product.rating) ? styles.starEmpty : ''}`}
-                        />
-                      ))}
-                    </div>
-                    <div className={styles.ratingBars}>
-                      {[92, 78, 60, 45, 30].map((w, i) => (
-                        <div key={i} className={styles.ratingBar}>
-                          <div className={styles.ratingBarFill} style={{ width: `${w}%` }} />
-                        </div>
-                      ))}
-                    </div>
+                  <span className={styles.ratingScore}>{product.trending_score || 'N/A'}</span>
+                  <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column' }}>
+                    <strong style={{ fontSize: 14 }}>Trending Score</strong>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Based on AI analysis</span>
                   </div>
                 </div>
                 <div className={styles.priceBlock}>
-                  <div className={styles.priceLabel}>Lowest Current Price</div>
+                  <div className={styles.priceLabel}>Best Available Price</div>
                   <div>
-                    <span className={styles.priceValue}>${product.prices[0].price.toLocaleString()}.00</span>
-                    <span className={styles.priceDrop}>{product.trendPercent}% Drop</span>
+                    {bestPrice > 0 ? (
+                      <span className={styles.priceValue}>${bestPrice.toLocaleString()}</span>
+                    ) : (
+                      <span className={styles.priceValue}>Check Listings</span>
+                    )}
                   </div>
                   <motion.button
                     className={styles.trackBtn}
@@ -111,75 +147,6 @@ export default function ProductDetailPage() {
               </div>
             </ScrollReveal>
 
-            {/* Price History Chart */}
-            <ScrollReveal>
-              <div className={styles.chartSection}>
-                <div className={styles.chartHeader}>
-                  <h2 className={styles.chartTitle}>Price History</h2>
-                  <div className={styles.chartTabs}>
-                    {chartTabs.map((tab, i) => (
-                      <button
-                        key={tab}
-                        className={`${styles.chartTab} ${i === 2 ? styles.chartTabActive : ''}`}
-                      >
-                        {tab}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div className={styles.chartArea}>
-                  <svg className={styles.chartSvg} viewBox={`0 0 ${svgWidth} ${svgHeight}`} preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#2563EB" stopOpacity="0.15" />
-                        <stop offset="100%" stopColor="#2563EB" stopOpacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <motion.path
-                      d={areaPath}
-                      fill="url(#areaGrad)"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.5, duration: 0.8 }}
-                    />
-                    <motion.path
-                      d={linePath}
-                      fill="none"
-                      stroke="#2563EB"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      initial={{ pathLength: 0 }}
-                      animate={{ pathLength: 1 }}
-                      transition={{ delay: 0.3, duration: 1.2, ease: 'easeInOut' }}
-                    />
-                    {/* Tooltip dot on last point */}
-                    <motion.circle
-                      cx={pad + (svgWidth - pad * 2)}
-                      cy={pad + (1 - (points[points.length - 1].price - minP) / range) * (svgHeight - pad * 2)}
-                      r="5"
-                      fill="#2563EB"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 1.2, duration: 0.3 }}
-                    />
-                    {/* X Axis Labels */}
-                    {points.map((p, i) => (
-                      <text
-                        key={i}
-                        x={pad + (i / (points.length - 1)) * (svgWidth - pad * 2)}
-                        y={svgHeight - 4}
-                        textAnchor="middle"
-                        fill="#9CA3AF"
-                        fontSize="11"
-                      >
-                        {p.date}
-                      </text>
-                    ))}
-                  </svg>
-                </div>
-              </div>
-            </ScrollReveal>
-
             {/* Technical Specifications */}
             <ScrollReveal>
               <div className={styles.specsSection}>
@@ -187,36 +154,20 @@ export default function ProductDetailPage() {
                   <h2 className={styles.specsTitle}>
                     <SettingOutlined /> Technical Specifications
                   </h2>
-                  <span className={styles.downloadLink}>Download Datasheet</span>
                 </div>
                 <div className={styles.specsGrid}>
-                  <div className={styles.specGroup}>
-                    <h4>Processor & Graphics</h4>
-                    {['CPU', 'GPU', 'VRAM', 'TDP'].map(k => product.specs[k] && (
-                      <div key={k} className={styles.specRow}>
-                        <span className={styles.specKey}>{k}</span>
-                        <span className={styles.specVal}>{product.specs[k]}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={styles.specGroup}>
-                    <h4>Display & Audio</h4>
-                    {['Size', 'Resolution', 'Features'].map(k => product.specs[k] && (
-                      <div key={k} className={styles.specRow}>
-                        <span className={styles.specKey}>{k}</span>
-                        <span className={styles.specVal}>{product.specs[k]}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className={styles.specGroup}>
-                    <h4>Body & Battery</h4>
-                    {['Dimensions', 'Weight', 'Battery', 'OS'].map(k => product.specs[k] && (
-                      <div key={k} className={styles.specRow}>
-                        <span className={styles.specKey}>{k}</span>
-                        <span className={styles.specVal}>{product.specs[k]}</span>
-                      </div>
-                    ))}
-                  </div>
+                  {Object.entries(specs).length > 0 ? (
+                    <div className={styles.specGroup} style={{ flex: '1 1 100%' }}>
+                      {Object.entries(specs).map(([k, v]) => (
+                        <div key={k} className={styles.specRow}>
+                          <span className={styles.specKey} style={{ textTransform: 'capitalize' }}>{k}</span>
+                          <span className={styles.specVal}>{String(v)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div style={{ padding: 20, color: 'var(--text-muted)' }}>No detailed specifications available.</div>
+                  )}
                 </div>
               </div>
             </ScrollReveal>
@@ -232,47 +183,63 @@ export default function ProductDetailPage() {
             {/* Where to Buy */}
             <div className={styles.buyPanel}>
               <h3 className={styles.buyTitle}>🛒 Where to Buy</h3>
-              {product.prices.map((mp, i) => (
-                <motion.div
-                  key={mp.marketplace}
-                  className={styles.buyOption}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                >
-                  <div className={styles.buyLeft}>
-                    <div className={styles.buyIcon} style={{ background: mp.color }}>
-                      {mp.marketplace[0]}
+              {product.affiliate_products.length > 0 ? (
+                product.affiliate_products.map((mp, i) => (
+                  <motion.div
+                    key={mp.id || i}
+                    className={styles.buyOption}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 + i * 0.1 }}
+                  >
+                    <div className={styles.buyLeft}>
+                      <div className={styles.buyIcon} style={{ background: '#2563EB' }}>
+                        <ShopOutlined />
+                      </div>
+                      <div style={{ overflow: 'hidden' }}>
+                        <div className={styles.buyName} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
+                            {mp.source_name}
+                        </div>
+                        <div className={styles.buyShipping}>{(mp.price && Number(mp.price) > 0) ? `${mp.currency} ${Number(mp.price).toLocaleString()}` : 'Check Price'}</div>
+                      </div>
                     </div>
-                    <div>
-                      <div className={styles.buyName}>{mp.marketplace}</div>
-                      <div className={styles.buyShipping}>{mp.shipping}</div>
+                    <div className={styles.buyRight}>
+                      <a href={mp.source_url} target="_blank" rel="noopener noreferrer" className={styles.buyLink} style={{ textDecoration: 'none' }}>
+                        View Deal →
+                      </a>
                     </div>
-                  </div>
-                  <div className={styles.buyRight}>
-                    <div className={styles.buyPrice}>${mp.price.toLocaleString()}</div>
-                    <div className={styles.buyLink}>Buy Now →</div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                ))
+              ) : (
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '12px 0' }}>
+                  No active listings found for this product.
+                </div>
+              )}
             </div>
 
-            {/* Our Verdict */}
-            {product.aiVerdict && (
+            {/* AI Verdict */}
+            {(aiVerdict || product.ai_insight) && (
               <div className={styles.verdictPanel}>
-                <h3 className={styles.verdictTitle}>Our Verdict</h3>
-                {product.aiVerdict.pros.map((pro, i) => (
-                  <div key={i} className={styles.verdictItem}>
+                <h3 className={styles.verdictTitle}>AI Analysis</h3>
+                {aiVerdict?.pros && aiVerdict?.pros.map((pro: string, i: number) => (
+                  <div key={`pro-${i}`} className={styles.verdictItem}>
                     <CheckCircleFilled className={styles.verdictPro} />
                     <span>{pro}</span>
                   </div>
                 ))}
-                {product.aiVerdict.cons.map((con, i) => (
-                  <div key={i} className={styles.verdictItem}>
+                {aiVerdict?.cons && aiVerdict?.cons.map((con: string, i: number) => (
+                  <div key={`con-${i}`} className={styles.verdictItem}>
                     <CloseCircleFilled className={styles.verdictCon} />
                     <span>{con}</span>
                   </div>
                 ))}
+                
+                {(!aiVerdict?.pros && !aiVerdict?.cons && typeof product.ai_insight === 'string') && (
+                  <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    <InfoCircleOutlined style={{ marginRight: 6, color: 'var(--primary)' }} />
+                    {product.ai_insight}
+                  </div>
+                )}
               </div>
             )}
           </motion.aside>
