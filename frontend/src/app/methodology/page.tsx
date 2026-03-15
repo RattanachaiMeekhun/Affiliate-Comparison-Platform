@@ -8,6 +8,7 @@ import {
   AuditOutlined,
   TeamOutlined,
   EyeOutlined,
+  BulbOutlined,
 } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal, StaggerWrapper, StaggerChild } from '@/components/AnimatedLayout/AnimatedLayout';
 
@@ -15,45 +16,56 @@ const methodologySections = [
   {
     icon: <DatabaseOutlined style={{ fontSize: 28, color: '#2563EB' }} />,
     title: 'Data Collection',
-    description: 'We aggregate product data from 15+ trusted marketplaces including Amazon, Best Buy, Newegg, and manufacturer direct stores. Our crawlers run every 4 hours to capture the latest pricing, availability, and promotional offers.',
+    description: 'We aggregate product data from regional marketplaces (Lazada, Shopee) and global aggregators like Google Shopping. Our system captures the latest pricing, availability, and promotional offers across multiple currencies.',
     details: [
-      'Real-time price tracking across 15+ marketplaces',
-      'Historical data going back 12+ months',
-      'Automated detection of fake deals and inflated original prices',
+      'Real-time price tracking via Serper and eBay APIs',
+      'Multi-currency support with live exchange rates',
+      'Automated detection of regional variants and SKUs',
       'Validation against manufacturer suggested retail prices (MSRP)',
     ],
   },
   {
-    icon: <ExperimentOutlined style={{ fontSize: 28, color: '#7C3AED' }} />,
-    title: 'AI-Powered Product Matching',
-    description: 'Our proprietary matching engine uses Google Gemini to semantically identify products across marketplaces, even when listings use different naming conventions or SKUs.',
+    icon: <BulbOutlined style={{ fontSize: 28, color: '#F59E0B' }} />,
+    title: 'AI Setup Specialist',
+    description: 'Our AI Setup Builder leverages Google Gemini to translate your professional needs into optimized hardware configurations, ensuring perfect compatibility and performance-per-dollar.',
     details: [
-      'Vector embedding comparison using PGVector',
-      'Fuzzy matching with 98.5% accuracy rate',
-      'Human-in-the-loop verification for edge cases',
-      'Continuous model fine-tuning on correction data',
+      'Context-aware hardware recommendations',
+      'Real-time budget optimization across categories',
+      'Expert-level compatibility checking (Thermal, PSU, Clearance)',
+      'Automated alternative suggestions for out-of-stock items',
+    ],
+  },
+  {
+    icon: <ExperimentOutlined style={{ fontSize: 28, color: '#7C3AED' }} />,
+    title: 'AI-Powered Matching',
+    description: 'Using vector embeddings and Gemini 2.5 Pro, we semantically identify products across marketplaces even when listings use different names, identifying the exact same model with 98.5% accuracy.',
+    details: [
+      'Semantic comparison using PGVector embeddings',
+      'High-precision SKU and variant identification',
+      'AI insights highlighting technical advantages (e.g., Cooling, Warranty)',
+      'Continuous model training on Thai marketplace data patterns',
     ],
   },
   {
     icon: <AuditOutlined style={{ fontSize: 28, color: '#10B981' }} />,
     title: 'Scoring & Ranking',
-    description: 'Products are evaluated on a composite score that combines benchmark performance, price-to-value ratio, build quality, and community sentiment analysis.',
+    description: 'Products are evaluated on a dynamic score that combines benchmark performance, price-to-value ratio, build quality, and real-time community sentiment analysis.',
     details: [
       'Weighted scoring: Performance (40%), Value (30%), Reliability (20%), Reviews (10%)',
-      'Benchmark data from independent testing labs',
-      'Sentiment analysis of 500K+ user reviews',
-      'Monthly recalibration of scoring weights',
+      'Benchmark data integration from independent labs',
+      'Sentiment analysis of localized user feedback',
+      'Monthly recalibration based on hardware release cycles',
     ],
   },
   {
-    icon: <EyeOutlined style={{ fontSize: 28, color: '#F59E0B' }} />,
+    icon: <EyeOutlined style={{ fontSize: 28, color: '#64748B' }} />,
     title: 'Transparency',
-    description: 'We believe in full transparency about our monetization. When you click an affiliate link, we may earn a commission at no extra cost to you. This never influences our rankings.',
+    description: 'We maintain full editorial independence. When you purchase through our links, we may earn a commission, but this never influences our rankings or AI recommendations.',
     details: [
       'Rankings are algorithm-driven, not pay-to-play',
       'Affiliate relationships disclosed on every product page',
-      'Annual third-party audit of ranking algorithm',
-      'Open methodology documentation',
+      'Regular audits of recommendation logic',
+      'Open methodology for score calculations',
     ],
   },
 ];

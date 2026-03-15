@@ -8,7 +8,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { fetchProducts, Product } from '@/lib/api';
 import CurrencySelector from '@/components/CurrencySelector/CurrencySelector';
+import Logo from '@/components/Branding/Logo';
 import styles from './Header.module.css';
+
 
 
 const navLinks = [
@@ -74,10 +76,7 @@ export default function Header() {
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className={styles.headerInner}>
-          <Link href="/" className={styles.logo}>
-            <img src="/logo.png" alt="Logo" style={{ width: 80, height: 80  }} />
-            stacknodes
-          </Link>
+          <Logo />
 
           <nav className={styles.nav}>
             {navLinks.map((link) => (

@@ -17,8 +17,6 @@ import styles from './page.module.css';
 
 import { useState, useEffect } from 'react';
 
-
-
 export default function HomePage() {
   const { selectedCurrency, rates } = useCurrency();
   const [activeTab, setActiveTab] = useState('All Categories');
@@ -26,15 +24,14 @@ export default function HomePage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
     async function loadData() {
       try {
-        const [prods,categories] = await Promise.all([fetchProducts(),fetchCategories()]);
+        const [prods, categories] = await Promise.all([fetchProducts(), fetchCategories()]);
         setProducts(prods);
         setCategories(categories);
       } catch (err) {
-        console.error("Error loading home page data", err);
+        console.error('Error loading home page data', err);
       } finally {
         setIsLoading(false);
       }
@@ -67,9 +64,8 @@ export default function HomePage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25, duration: 0.5 }}
             >
-              Stop guessing. Our AI analyzes thousands of benchmarks to find
-              high-performance hardware tailored specifically for data science,
-              3D rendering, and 4K video editing.
+              Stop guessing. Our AI analyzes thousands of benchmarks to find high-performance
+              hardware tailored specifically for data science, 3D rendering, and 4K video editing.
             </motion.p>
             <motion.div
               className={styles.heroCtas}
@@ -110,10 +106,7 @@ export default function HomePage() {
           {mockCategories.map((category) => (
             <StaggerChild key={category.id}>
               <motion.div whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
-                <Link
-                  href={`/category/${category.slug}`}
-                  className={styles.categoryCard}
-                >
+                <Link href={`/category/${category.slug}`} className={styles.categoryCard}>
                   <div className={styles.categoryIcon}>{category.icon}</div>
                   <h3 className={styles.categoryName}>{category.name}</h3>
                   <p className={styles.categoryDesc}>{category.description}</p>
@@ -150,27 +143,24 @@ export default function HomePage() {
         ) : (
           <StaggerWrapper className={styles.productGrid}>
             {products.slice(0, 8).map((product) => {
-              const bestPrice = product.affiliate_products.length > 0 
-                  ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0)) 
+              const bestPrice =
+                product.affiliate_products.length > 0
+                  ? Math.min(
+                      ...product.affiliate_products
+                        .map((p) => Number(p.price) || 0)
+                        .filter((p) => p > 0)
+                    )
                   : Number(product.price) || 0;
-              
+
               const imgUrl = product.image_url || '/placeholder.png'; // Assume placeholder exists or fails gracefully
-              console.log({product,imgUrl});
-              
+
               return (
                 <StaggerChild key={product.id}>
                   <motion.div whileHover={{ y: -5 }} whileTap={{ scale: 0.98 }}>
-                    <Link
-                      href={`/products/${product.slug}`}
-                      className={styles.productCard}
-                    >
+                    <Link href={`/products/${product.slug}`} className={styles.productCard}>
                       {product.best_value && (
                         <div className={styles.productBadge}>
-                          <span
-                            className="badge badge-danger"
-                          >
-                            Best Value
-                          </span>
+                          <span className="badge badge-danger">Best Value</span>
                         </div>
                       )}
                       <div className={styles.productImage}>
@@ -179,33 +169,36 @@ export default function HomePage() {
                           src={imgUrl}
                           alt={product.name}
                           style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                          onError={(e) => { e.currentTarget.src = '/no-image.png'; }}
+                          onError={(e) => {
+                            e.currentTarget.src = '/no-image.png';
+                          }}
                         />
                       </div>
                       <div className={styles.productInfo}>
                         <h3 className={styles.productName}>{product.name}</h3>
                         <div className={styles.productPrice}>
-                           {bestPrice > 0 ? (
+                          {bestPrice > 0 ? (
                             <span className={styles.priceValue}>
-                              {formatPrice(bestPrice, product.currency || 'THB', selectedCurrency, rates)}
+                              {formatPrice(
+                                bestPrice,
+                                product.currency || 'THB',
+                                selectedCurrency,
+                                rates
+                              )}
                             </span>
-                           ) : (
-                            <span className={styles.priceValue}>
-                            View Prices
-                            </span>
-                           )}
+                          ) : (
+                            <span className={styles.priceValue}>View Prices</span>
+                          )}
                         </div>
 
-                        <div
-                          className={`${styles.productTrend} ${styles.trendStable}`}
-                        >
+                        <div className={`${styles.productTrend} ${styles.trendStable}`}>
                           — Trending Score: {Number(product.trending_score) || 'N/A'}
                         </div>
                       </div>
                     </Link>
                   </motion.div>
                 </StaggerChild>
-              )
+              );
             })}
           </StaggerWrapper>
         )}
@@ -213,4 +206,3 @@ export default function HomePage() {
     </AnimatedPage>
   );
 }
-
