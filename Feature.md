@@ -13,7 +13,7 @@ The system is built on a modular micro-services architecture to ensure high avai
 - **Ingestion Layer:** Asynchronous crawlers (Playwright/Scrapy) managing multi-source data ingestion.
 - **Intelligence Layer:** Gemini-based matching engine utilizing vector embeddings (PGVector) to normalize product identities.
 - **Distribution Layer:** SEO-optimized frontend (Next.js) serving server-side rendered (SSR) content.
-- **Operations Layer:** Admin dashboard for manual data overrides and scraper health monitoring.
+- **Operations Layer:** Backend management of data and scraper health monitoring.
 
 ### 3. Feature Specifications
 

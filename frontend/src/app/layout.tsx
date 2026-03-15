@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import StoreProvider from '@/store/provider';
+import { CurrencyProvider } from '@/context/CurrencyContext';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
 import './globals.css';
@@ -20,15 +21,18 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <AntdRegistry>
-          <StoreProvider>
-            <Header />
-            <main style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
-              {children}
-            </main>
-            <Footer />
-          </StoreProvider>
+          <CurrencyProvider>
+            <StoreProvider>
+              <Header />
+              <main style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
+                {children}
+              </main>
+              <Footer />
+            </StoreProvider>
+          </CurrencyProvider>
         </AntdRegistry>
       </body>
     </html>
   );
 }
+

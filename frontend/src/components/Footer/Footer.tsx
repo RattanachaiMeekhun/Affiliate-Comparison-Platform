@@ -39,6 +39,16 @@ export default function Footer() {
         </div>
       </div>
 
+      <div className={styles.disclosure}>
+        <p>
+          Affiliate Disclosure: stacknodes is a participant in various affiliate
+          programs. We may earn a commission when you click on or make purchases
+          via links from our platform at no additional cost to you. Our comparison
+          engine remains objective and focused on find the best technical value for
+          pro users.
+        </p>
+      </div>
+
       <p className={styles.copyright}>
         © 2025 stacknodes Inc. All rights reserved.
       </p>

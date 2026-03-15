@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: str | None = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    HMAC_SECRET_KEY: str | None = None
 
     # Cloudflare R2
     R2_ACCOUNT_ID: str | None = None
@@ -43,8 +44,12 @@ class Settings(BaseSettings):
     R2_SECRET_ACCESS_KEY: str | None = None
     R2_BUCKET_NAME: str | None = None
     R2_PUBLIC_URL: str | None = None
+    
+    # ExchangeRate-API
+    EXCHANGERATE_API_KEY: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 
 settings = Settings()

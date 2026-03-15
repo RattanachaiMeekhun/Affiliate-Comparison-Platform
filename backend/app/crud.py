@@ -1,6 +1,6 @@
 from datetime import datetime
-from sqlalchemy.orm import Session
 from . import models, schemas
+from sqlalchemy.orm import Session, joinedload
 import uuid
 from slugify import slugify
 from typing import List
@@ -11,7 +11,14 @@ def get_product(db: Session, product_id: uuid.UUID):
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Product).offset(skip).limit(limit).all()
+    return (
+        db.query(models.Product)
+        .options(joinedload(models.Product.affiliate_products))
+        .order_by(models.Product.image_url.is_not(None).desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def create_products(db: Session, products_data: list[dict]):
@@ -76,6 +83,15 @@ def create_products(db: Session, products_data: list[dict]):
         db.add(db_product)
         db_products.append(db_product)
 
+        # Record initial price in PriceHistory if price exists
+        if db_product.price:
+            history = models.PriceHistory(
+                product_id=db_product.id,
+                price=db_product.price,
+                currency=db_product.currency,
+            )
+            db.add(history)
+
     db.commit()
     # Refresh to get IDs
     for p in db_products:
@@ -103,18 +119,48 @@ def get_product_names_by_category(db: Session, category_id: uuid.UUID):
     ]
 
 
-def get_products_by_category(db: Session, category_id: uuid.UUID):
-    return (
-        db.query(models.Product).filter(models.Product.category_id == category_id).all()
-    )
+def get_products_by_category(
+    db: Session, category: str, skip: int = 0, limit: int = 100
+):
+    # Try to see if 'category' is a UUID (category_id)
+    try:
+        uuid.UUID(category)
+        return (
+            db.query(models.Product)
+            .options(joinedload(models.Product.affiliate_products))
+            .filter(models.Product.category_id == category)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+    except ValueError:
+        # If not a UUID, assume it's a slug
+        return (
+            db.query(models.Product)
+            .options(joinedload(models.Product.affiliate_products))
+            .join(models.Category)
+            .filter(models.Category.slug == category)
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
 
 def get_category(db: Session, category_id: uuid.UUID):
-    return db.query(models.Category).filter(models.Category.id == category_id).first()
+    return (
+        db.query(models.Category)
+        .filter(models.Category.id == category_id)
+        .order_by(models.Category.sort_order.asc())
+        .first()
+    )
 
 
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.Category).offset(skip).limit(limit).all()
+
+
+def get_category_by_slug(db: Session, slug: str):
+    return db.query(models.Category).filter(models.Category.slug == slug).first()
 
 
 def create_category(db: Session, category: schemas.CategoryCreate):
@@ -158,3 +204,21 @@ def update_category(db: Session, categorise: List[models.Category]):
     for category in categorise:
         db.refresh(category)
     return categorise
+
+
+def get_currency_rates(db: Session):
+    return db.query(models.CurrencyRate).all()
+
+
+def update_currency_rate(db: Session, code: str, rate: float):
+    db_rate = (
+        db.query(models.CurrencyRate).filter(models.CurrencyRate.code == code).first()
+    )
+    if db_rate:
+        db_rate.rate = rate
+    else:
+        db_rate = models.CurrencyRate(code=code, rate=rate)
+        db.add(db_rate)
+    db.commit()
+    db.refresh(db_rate)
+    return db_rate

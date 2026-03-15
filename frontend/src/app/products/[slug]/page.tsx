@@ -7,10 +7,14 @@ import { motion } from 'framer-motion';
 import { BellOutlined, SettingOutlined, CheckCircleFilled, CloseCircleFilled, InfoCircleOutlined, ShopOutlined } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal } from '@/components/AnimatedLayout/AnimatedLayout';
 import { fetchProducts, Product, Category, fetchCategories } from '@/lib/api';
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatPrice } from '@/lib/formatters';
 import styles from './page.module.css';
 
 export default function ProductDetailPage() {
+  const { selectedCurrency, rates } = useCurrency();
   const params = useParams();
+
   const slug = params.slug as string;
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -131,11 +135,14 @@ export default function ProductDetailPage() {
                   <div className={styles.priceLabel}>Best Available Price</div>
                   <div>
                     {bestPrice > 0 ? (
-                      <span className={styles.priceValue}>${bestPrice.toLocaleString()}</span>
+                      <span className={styles.priceValue}>
+                        {formatPrice(bestPrice, product.currency || 'THB', selectedCurrency, rates)}
+                      </span>
                     ) : (
                       <span className={styles.priceValue}>Check Listings</span>
                     )}
                   </div>
+
                   <motion.button
                     className={styles.trackBtn}
                     whileHover={{ scale: 1.02 }}
@@ -200,11 +207,16 @@ export default function ProductDetailPage() {
                         <div className={styles.buyName} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
                             {mp.source_name}
                         </div>
-                        <div className={styles.buyShipping}>{(mp.price && Number(mp.price) > 0) ? `${mp.currency} ${Number(mp.price).toLocaleString()}` : 'Check Price'}</div>
+                        <div className={styles.buyShipping}>
+                          {(mp.price && Number(mp.price) > 0) 
+                            ? formatPrice(mp.price, mp.currency || 'THB', selectedCurrency, rates)
+                            : 'Check Price'
+                          }
+                        </div>
                       </div>
                     </div>
                     <div className={styles.buyRight}>
-                      <a href={mp.source_url} target="_blank" rel="noopener noreferrer" className={styles.buyLink} style={{ textDecoration: 'none' }}>
+                      <a href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/affiliate/go/${mp.id}`} target="_blank" rel="noopener noreferrer" className={styles.buyLink} style={{ textDecoration: 'none' }}>
                         View Deal →
                       </a>
                     </div>

@@ -23,12 +23,14 @@ export default function CategoryPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [allCats, allProds] = await Promise.all([fetchCategories(), fetchProducts()]);
+        const [allCats, catProds] = await Promise.all([
+          fetchCategories(),
+          fetchProducts(slug)
+        ]);
         
         const foundCat = allCats.find(c => c.slug === slug);
         if (foundCat) {
           setCategory(foundCat);
-          const catProds = allProds.filter(p => p.category_id === foundCat.id);
           setProducts(catProds);
         } else {
           setCategory(null);

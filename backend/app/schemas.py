@@ -80,8 +80,22 @@ class Product(ProductBase):
         from_attributes = True
 
 
+
 class ProductImageUpdateResponse(BaseModel):
     total_updated: int
     total_errors: int
     products: List[Product]
     errors: List[dict]
+
+
+class CurrencyRateBase(BaseModel):
+    code: str
+    rate: Decimal
+
+
+class CurrencyRate(CurrencyRateBase):
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+

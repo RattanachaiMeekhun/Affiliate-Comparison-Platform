@@ -233,12 +233,16 @@ export default function ComparePage() {
                           <div className={styles.priceActions}>
                             <span className={styles.detailsBtn}>Details</span>
                             {product.affiliate_products.length > 0 && (
-                            <span
+                            <a
+                              href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/affiliate/go/${product.affiliate_products[0].id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
                               className={styles.marketplaceBtn}
-                              style={{ background: '#2563EB' }}
+                              style={{ background: '#2563EB', textDecoration: 'none' }}
+                              onClick={(e) => e.stopPropagation()}
                             >
                               {product.affiliate_products[0].source_name} →
-                            </span>
+                            </a>
                             )}
                           </div>
                         </div>

@@ -69,11 +69,21 @@
   color: white;
 }
 
+.disclosure {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 32px 24px 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #64748B;
+  text-align: center;
+}
+
 .copyright {
   max-width: var(--container);
   margin: 0 auto;
-  padding: 24px 24px 0;
-  margin-top: 40px;
+  padding: 16px 24px 0;
+  margin-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   text-align: center;
   font-size: 12px;

@@ -9,23 +9,30 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { fetchProducts, Product } from '@/lib/api';
+import { Category, fetchCategories, fetchProducts, Product } from '@/lib/api';
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatPrice } from '@/lib/formatters';
 import { mockCategories } from '@/util/mockData';
 import styles from './page.module.css';
+
 import { useState, useEffect } from 'react';
 
-const tabFilters = ['All Categories']; // Simplified for real data
+
 
 export default function HomePage() {
+  const { selectedCurrency, rates } = useCurrency();
   const [activeTab, setActiveTab] = useState('All Categories');
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     async function loadData() {
       try {
-        const prods = await fetchProducts();
+        const [prods,categories] = await Promise.all([fetchProducts(),fetchCategories()]);
         setProducts(prods);
+        setCategories(categories);
       } catch (err) {
         console.error("Error loading home page data", err);
       } finally {
@@ -123,15 +130,15 @@ export default function HomePage() {
               <h2 className={styles.sectionTitle}>Trending Hardware Deals</h2>
             </div>
             <div className={styles.filterTabs}>
-              {tabFilters.map((tab) => (
+              {categories.map((category) => (
                 <button
-                  key={tab}
+                  key={category.id}
                   className={`${styles.filterTab} ${
-                    activeTab === tab ? styles.filterTabActive : ''
+                    activeTab === category.name ? styles.filterTabActive : ''
                   }`}
-                  onClick={() => setActiveTab(tab)}
+                  onClick={() => setActiveTab(category.name)}
                 >
-                  {tab}
+                  {category.name}
                 </button>
               ))}
             </div>
@@ -172,7 +179,7 @@ export default function HomePage() {
                           src={imgUrl}
                           alt={product.name}
                           style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                          onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/120?text=No+Image'; }}
+                          onError={(e) => { e.currentTarget.src = '/no-image.png'; }}
                         />
                       </div>
                       <div className={styles.productInfo}>
@@ -180,7 +187,7 @@ export default function HomePage() {
                         <div className={styles.productPrice}>
                            {bestPrice > 0 ? (
                             <span className={styles.priceValue}>
-                            ${bestPrice.toLocaleString()}
+                              {formatPrice(bestPrice, product.currency || 'THB', selectedCurrency, rates)}
                             </span>
                            ) : (
                             <span className={styles.priceValue}>
@@ -188,6 +195,7 @@ export default function HomePage() {
                             </span>
                            )}
                         </div>
+
                         <div
                           className={`${styles.productTrend} ${styles.trendStable}`}
                         >

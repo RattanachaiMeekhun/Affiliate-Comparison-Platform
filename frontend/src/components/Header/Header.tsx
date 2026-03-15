@@ -7,7 +7,9 @@ import { SearchOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { fetchProducts, Product } from '@/lib/api';
+import CurrencySelector from '@/components/CurrencySelector/CurrencySelector';
 import styles from './Header.module.css';
+
 
 const navLinks = [
   { label: 'Deals', href: '/' },
@@ -73,7 +75,7 @@ export default function Header() {
       >
         <div className={styles.headerInner}>
           <Link href="/" className={styles.logo}>
-            <span className={styles.logoIcon}>s</span>
+            <img src="/logo.png" alt="Logo" style={{ width: 80, height: 80  }} />
             stacknodes
           </Link>
 
@@ -181,6 +183,11 @@ export default function Header() {
               )}
             </AnimatePresence>
           </div>
+
+          <div style={{ marginLeft: 16 }}>
+            <CurrencySelector />
+          </div>
+
 
         </div>
       </motion.header>

@@ -30,7 +30,9 @@ dependencies = [
     "bcrypt",
     "boto3",
     "aiohttp",
+    "apscheduler",
 ]
+
 
 [dependency-groups]
 dev = [

@@ -10,6 +10,7 @@ from slugify import slugify
 from pydantic import BaseModel
 import uuid
 import json
+import asyncio
 from langchain_core.messages import SystemMessage
 from app.ai.llm import LLMProvider
 from app.services.storage_service import StorageService
@@ -19,9 +20,19 @@ router = APIRouter(prefix="/products", tags=["products"])
 
 @router.get("/", response_model=List[schemas.Product])
 def read_products(
-    skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db)
+    skip: int = 0,
+    limit: int = 100,
+    category: str | None = None,
+    db: Session = Depends(database.get_db),
 ):
-    return crud.get_products(db, skip=skip, limit=limit)
+    try:
+        if category:
+            return crud.get_products_by_category(
+                db, category=category, skip=skip, limit=limit
+            )
+        return crud.get_products(db, skip=skip, limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/{product_id}", response_model=schemas.Product)
@@ -43,7 +54,7 @@ async def sync_images(
     """
     products = (
         db.query(models.Product)
-        .filter(models.Product.image_url == None)
+        .filter(models.Product.image_url.is_(None))
         .limit(limit)
         .all()
     )
@@ -217,12 +228,12 @@ async def feed_new_products(products: str, db: Session = Depends(database.get_db
     set_tracker(None)
 
     # ── 4. Print grand total ──
-    print(f"\n{'=' * 50}")
+    print("\n" + "=" * 50)
     print(f"🏁 GRAND TOTAL TOKEN USAGE")
     print(f"   Input:  {grand_total_input:,}")
     print(f"   Output: {grand_total_output:,}")
     print(f"   Total:  {grand_total_tokens:,}")
-    print(f"{'=' * 50}")
+    print("=" * 50)
 
     # ── 5. Return summary ──
     return {
@@ -416,6 +427,9 @@ CRITICAL RULES:
                     existing_product_names.add(p.get("name", name))
 
                 print(f"    ✅ Saved {len(saved)} product(s) for '{name}'")
+                
+                # Strategic yield to prevent event loop starvation and potential timeouts
+                await asyncio.sleep(0.1)
 
             except Exception as e:
                 import traceback
