@@ -6,6 +6,7 @@ import {
   ArrowRightOutlined 
 } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
+import { Form } from 'antd';
 import { RootState } from '@/store';
 import { setSelection, setStep } from '@/store/slices/builderSlice';
 import { steps, budgetLabels } from './builderData';
@@ -16,12 +17,14 @@ const Surveys = () => {
   const dispatch = useDispatch();
   const { currentStep, selections } = useSelector((state: RootState) => state.builder);
   const { selectedCurrency: currency } = useCurrency();
+  const form = Form.useFormInstance();
 
   const step = steps[currentStep];
   const progressPercent = Math.round(((currentStep + 1) / steps.length) * 100);
 
   const handleSelect = (sectionId: string, optionLabel: string) => {
     dispatch(setSelection({ sectionId, optionLabel }));
+    form.setFieldsValue({ [sectionId]: optionLabel });
   };
 
   const handleNext = () => {
@@ -99,63 +102,71 @@ const Surveys = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
         {step.sections.map((section, sIdx) => (
           <div key={section.id}>
-            <motion.h3
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 * sIdx }}
-              style={{
-                fontSize: 20,
-                fontWeight: 700,
-                marginBottom: 24,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-              }}
+            <Form.Item 
+              name={section.id} 
+              rules={[{ required: true, message: `Please select ${section.label}` }]}
+              initialValue={selections[section.id]}
             >
-              <Tag
-                color="blue"
-                style={{
-                  borderRadius: '50%',
-                  width: 28,
-                  height: 28,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: 0,
-                }}
-              >
-                {sIdx + 1}
-              </Tag>
-              {section.label}
-            </motion.h3>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                gap: 16,
-              }}
-            >
-              {section.options.map((opt) => {
-                let displayLabel = opt.label;
-                if (section.id === 'budget') {
-                  const mappedLabel = budgetLabels[currency]?.[opt.id];
-                  if (mappedLabel) {
-                    displayLabel = mappedLabel;
-                  }
-                }
-                const isSelected = selections[section.id] === displayLabel;
-                
-                return (
-                  <SurveysCheckbox
-                    key={opt.id}
-                    opt={{ ...opt, label: displayLabel }}
-                    handleSelect={handleSelect}
-                    isSelected={isSelected}
-                    section={section}
-                  />
-                );
-              })}
-            </div>
+              <div>
+                <motion.h3
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * sIdx }}
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 700,
+                    marginBottom: 24,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                  }}
+                >
+                  <Tag
+                    color="blue"
+                    style={{
+                      borderRadius: '50%',
+                      width: 28,
+                      height: 28,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: 0,
+                    }}
+                  >
+                    {sIdx + 1}
+                  </Tag>
+                  {section.label}
+                </motion.h3>
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+                    gap: 16,
+                  }}
+                >
+                  {section.options.map((opt) => {
+                    let displayLabel = opt.label;
+                    if (section.id === 'budget') {
+                      const mappedLabel = budgetLabels[currency]?.[opt.id];
+                      if (mappedLabel) {
+                        displayLabel = mappedLabel;
+                      }
+                    }
+                    const isSelected = selections[section.id] === displayLabel;
+                    
+                    return (
+                      <SurveysCheckbox
+                        key={opt.id}
+                        opt={{ ...opt, label: displayLabel }}
+                        handleSelect={handleSelect}
+                        isSelected={isSelected}
+                        section={section}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </Form.Item>
           </div>
         ))}
       </div>

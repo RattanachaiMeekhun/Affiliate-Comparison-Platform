@@ -31,6 +31,7 @@ dependencies = [
     "boto3",
     "aiohttp",
     "apscheduler",
+    "pgvector",
 ]
 
 

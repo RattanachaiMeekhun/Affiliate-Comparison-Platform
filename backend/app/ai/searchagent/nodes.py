@@ -114,10 +114,10 @@ def insight_writer_node(state: SearchAgentState) -> SearchAgentState:
             f"### Google Shopping Live Market Data\n{state['serper_raw']}"
         )
 
-    # Shopee/Lazada web market data
+    # Amazon web market data
     if state.get("web_raw") and state.get("web_raw") != "[]":
         context_parts.append(
-            f"### Web Search Market Data (Shopee/Lazada/etc)\n{state['web_raw']}"
+            f"### Web Search Market Data (Amazon/Retailers)\n{state['web_raw']}"
         )
 
     combined_context = "\n\n".join(context_parts) if context_parts else ""
@@ -147,11 +147,11 @@ def insight_writer_node(state: SearchAgentState) -> SearchAgentState:
 
 
 # ──────────────────────────────────────────────
-# Web search node (fallback for Shopee/Lazada)
+# Web search node (fallback for Amazon)
 # ──────────────────────────────────────────────
 def web_search_node(state: SearchAgentState) -> SearchAgentState:
     """
-    Fetch real product links & prices from the web (specifically Shopee/Lazada)
+    Fetch real product links & prices from the web (specifically Amazon)
     using DuckDuckGo Search.
     """
     print("--- RUNNING WEB SEARCH NODE ---")
@@ -167,12 +167,12 @@ def web_search_node(state: SearchAgentState) -> SearchAgentState:
     if not query:
         return {"web_results": [], "web_raw": "[]"}
 
-    # 💡 OPTION B: Additional external API (DuckDuckGo searching Shopee/Lazada)
+    # 💡 OPTION B: Additional external API (DuckDuckGo searching Amazon)
     try:
         from ddgs import DDGS
         import json
 
-        search_query = f"{query} price (shopee.co.th OR lazada.co.th OR advice.co.th)"
+        search_query = f"{query} price (amazon.com OR walmart.com OR bestbuy.com)"
 
         with DDGS() as ddgs:
             results = list(ddgs.text(search_query, max_results=5))

@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     # Serper API
     SERPER_API_KEY: str | None = None
 
+    # Embedding (for pgvector product search)
+    EMBEDDING_PROVIDER: str = "google"  # google | openai
+    EMBEDDING_MODEL: str = "text-embedding-004"
+
     # Auth
     JWT_SECRET_KEY: str | None = None
     ALGORITHM: str = "HS256"

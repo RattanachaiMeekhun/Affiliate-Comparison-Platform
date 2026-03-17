@@ -21,8 +21,8 @@ class SerperService:
 
         payload = {
             "q": query,
-            "gl": "th",  # Localize to Thailand
-            "hl": "th",  # Language Thai
+            "gl": "us",  # Localize to USA (Amazon base)
+            "hl": "en",  # Language English
             "num": limit,  # Number of results
         }
 
@@ -75,7 +75,7 @@ class SerperService:
 
         for item in shopping_results:
             price_raw = item.get("price", "0")
-            # Extract numbers from price string (e.g., '฿15,900.00' -> 15900.00)
+            # Extract numbers from price string (e.g., '$1,599.00' -> 1599.00)
             import re
 
             price_str = re.sub(r"[^\d.]", "", str(price_raw).replace(",", ""))
@@ -90,8 +90,8 @@ class SerperService:
                     "source_url": item.get("link", ""),
                     "price": price_val,
                     "currency": item.get(
-                        "currency", "THB"
-                    ),  # Serper usually returns currency or we assume THB since gl=th
+                        "currency", "USD"
+                    ),  # Default to USD for gl=us
                     "image_url": item.get("imageUrl", ""),
                     "raw_data": {
                         "title": item.get("title", ""),

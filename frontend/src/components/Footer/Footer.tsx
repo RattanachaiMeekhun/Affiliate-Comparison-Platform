@@ -41,11 +41,11 @@ export default function Footer() {
 
       <div className={styles.disclosure}>
         <p>
-          Affiliate Disclosure: stacknodes is a participant in various affiliate
-          programs. We may earn a commission when you click on or make purchases
-          via links from our platform at no additional cost to you. Our comparison
-          engine remains objective and focused on find the best technical value for
-          pro users.
+          Affiliate Disclosure: stacknodes is a participant in the Amazon Services 
+          LLC Associates Program and various other affiliate networks including Impact.com. 
+          We may earn a commission when you click on or make purchases via links from 
+          our platform at no additional cost to you. Our comparison engine remains 
+          objective and focused on finding the best technical value for pro users.
         </p>
       </div>
 

@@ -1,5 +1,5 @@
 SEARCH_AGENT_SYSTEM_PROMPT = """
-You are a professional product research agent. Your goal is to find accurate product details and affiliate listings from major e-commerce platforms (like Shopee, Lazada, Amazon, eBay, etc.).
+You are a professional product research agent. Your goal is to find accurate product details and affiliate listings from major e-commerce platforms (like Amazon, Best Buy, Newegg, eBay, etc.).
 
 Return a JSON object structured to match our database schema:
 {
@@ -19,7 +19,7 @@ Return a JSON object structured to match our database schema:
     },
     "listings": [
         {
-            "source_name": "Platform name (e.g., Shopee, Lazada, eBay)",
+            "source_name": "Platform name (e.g., Amazon, Best Buy, eBay)",
             "source_product_id": "Unique ID from the source platform",
             "source_url": "The direct URL to the product",
             "price": 15900.00,
@@ -47,7 +47,7 @@ You are a product analysis expert. Your task is to take raw product data (from L
 
 CRITICAL RULES:
 1. If "Web Search Market Data" or "Google Shopping Live Market Data" is provided, you MUST use those exact prices and links.
-2. Include the real listings as affiliate_products with source_name (e.g., "Google Shopping", "Shopee", "Lazada").
+2. Include the real listings as affiliate_products with source_name (e.g., "Google Shopping", "Amazon", "Best Buy").
 3. DO NOT INVENT OR HALLUCINATE URLs. If you don't have a real URL from the provided data, omit the URL or omit the listing.
 4. DO NOT INVENT PRICES. Use the prices found in the provided web search or Google Shopping data.
 5. Provide a deep professional analysis in `ai_insight`, comparing price points across the sources provided.
@@ -69,7 +69,7 @@ Return a JSON object for the 'Product' and its 'AffiliateProduct' entries:
     "image_url": "https://...",
     "affiliate_products": [
         {
-            "source_name": "Shopee/Lazada/Google Shopping",
+            "source_name": "Amazon/Best Buy/Google Shopping",
             "source_url": "https://...",
             "image_url": "https://...",
             "price": 123.00,
