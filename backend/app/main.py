@@ -16,12 +16,16 @@ import asyncio
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
 
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    # Supabase may deny schema-level DDL (e.g. vault schema).
-    # Tables are managed via Supabase migrations, so this is safe to skip.
-    print(f"⚠ create_all skipped: {e}")
+if engine:
+    try:
+        Base.metadata.create_all(bind=engine)
+    except Exception as e:
+        # Supabase may deny schema-level DDL (e.g. vault schema).
+        # Tables are managed via Supabase migrations, so this is safe to skip.
+        print(f"⚠ create_all skipped: {e}")
+else:
+    print("❌ Database engine not initialized. Skipping create_all.")
+
 API_KEY_NAME = "access_token"
 api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
 
@@ -44,12 +48,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(categories.router)
-app.include_router(products.router)
-app.include_router(affiliate.router)
-app.include_router(serper.router)
-app.include_router(currencies.router)
-app.include_router(setbuilder.router)
+app.include_router(categories.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(products.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(affiliate.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(serper.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(currencies.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(setbuilder.router,dependencies=[Depends(verify_hmac_signature)])
 
 
 

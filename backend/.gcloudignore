@@ -1,0 +1,18 @@
+.gcloudignore
+.git
+.gitignore
+.venv/
+__pycache__/
+.env
+.env.local
+.python-version
+.pytest_cache/
+.vscode/
+.idea/
+node_modules/
+dist/
+build/
+*.log
+# Add any other project files needed for the build context
+# These are handled by ! patterns in .dockerignore but .gcloudignore is for the INITIAL upload
+
