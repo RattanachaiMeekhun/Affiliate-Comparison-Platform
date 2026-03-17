@@ -42,7 +42,7 @@ class VectorService:
 
             return OpenAIEmbeddings(
                 model=self.model,
-                openai_api_key="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",
+                openai_api_key=api_key,
                 base_url=base_url,
             )
         else:
