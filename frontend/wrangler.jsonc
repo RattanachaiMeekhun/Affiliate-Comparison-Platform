@@ -9,4 +9,7 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS",
   },
+  "observability": {
+    "enabled": false,
+  },
 }

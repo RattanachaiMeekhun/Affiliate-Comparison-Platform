@@ -56,7 +56,11 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 @app.middleware("http")
 async def cloudflare_ip_whitelist(request: Request, call_next):
-    # 1. ดึง IP จริงจาก Header ที่ Cloudflare ส่งมา
+    # 1. ปล่อยผ่านถ้าเป็น OPTIONS (CORS Preflight) หรือ DEBUG
+    if request.method == "OPTIONS" or settings.DEBUG:
+        return await call_next(request)
+        
+    # 2. ดึง IP จริงจาก Header ที่ Cloudflare ส่งมา
     # หมายเหตุ: Cloudflare จะส่ง 'cf-connecting-ip' มาให้เสมอ
     client_ip_str = request.headers.get("cf-connecting-ip")
     
@@ -65,19 +69,19 @@ async def cloudflare_ip_whitelist(request: Request, call_next):
 
     client_ip = ipaddress.ip_address(client_ip_str)
 
-    # 2. ตรวจสอบว่า IP อยู่ในวงของ Cloudflare หรือไม่
+    # 3. ตรวจสอบว่า IP อยู่ในวงของ Cloudflare หรือไม่
     is_valid = any(client_ip in network for network in CLOUDFLARE_NETWORKS)
 
     if not is_valid:
         raise HTTPException(status_code=403, detail="IP not in whitelist")
 
-    # 3. ผ่านด่าน IP แล้ว ส่งต่อไปยังขั้นตอนตรวจ Signature Key ของคุณ
+    # 4. ผ่านด่าน IP แล้ว ส่งต่อไปยังขั้นตอนตรวจ Signature Key ของคุณ
     response = await call_next(request)
     return response
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=["http://localhost:3000","https://stacknodes.net/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

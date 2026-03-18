@@ -18,7 +18,7 @@ from app.services.storage_service import StorageService
 router = APIRouter(prefix="/products", tags=["products"])
 
 
-@router.get("/", response_model=List[schemas.Product])
+@router.get("", response_model=List[schemas.Product])
 def read_products(
     skip: int = 0,
     limit: int = 100,

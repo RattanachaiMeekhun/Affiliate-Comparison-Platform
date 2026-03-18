@@ -52,6 +52,9 @@ class Settings(BaseSettings):
     # ExchangeRate-API
     EXCHANGERATE_API_KEY: str | None = None
 
+    # Debug
+    DEBUG: bool = False
+
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
