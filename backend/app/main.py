@@ -62,22 +62,29 @@ async def cloudflare_ip_whitelist(request: Request, call_next):
     if request.method == "OPTIONS" or settings.DEBUG:
         return await call_next(request)
         
-    # 2. ดึง IP จริงจาก Header ที่ Cloudflare ส่งมา
-    # หมายเหตุ: Cloudflare จะส่ง 'cf-connecting-ip' มาให้เสมอ
-    client_ip_str = request.headers.get("cf-connecting-ip")
+    # 2. ใน Google Cloud Run ต้องดึง IP จาก x-forwarded-for 
+    # Cloud Run จะเติม IP ของ Server ล่าสุดที่เชื่อมต่อเข้ามาไว้ที่ตำแหน่ง "สุดท้าย" เสมอ
+    x_forwarded_for = request.headers.get("x-forwarded-for")
     
-    if not client_ip_str:
-        raise HTTPException(status_code=403, detail="Direct access prohibited")
+    if not x_forwarded_for:
+        raise HTTPException(status_code=403, detail="Direct access prohibited (No X-Forwarded-For)")
 
-    client_ip = ipaddress.ip_address(client_ip_str)
+    # ตัดช่องว่างและดึง IP ตัวสุดท้ายจากรายการ (เช่น "user_ip, cloudflare_ip")
+    ips = [ip.strip() for ip in x_forwarded_for.split(",")]
+    connecting_ip_str = ips[-1]
+    
+    try:
+        connecting_ip = ipaddress.ip_address(connecting_ip_str)
+    except ValueError:
+        raise HTTPException(status_code=403, detail="Invalid IP format")
 
-    # 3. ตรวจสอบว่า IP อยู่ในวงของ Cloudflare หรือไม่
-    is_valid = any(client_ip in network for network in CLOUDFLARE_NETWORKS)
+    # 3. ตรวจสอบว่า IP ที่เชื่อมต่อเข้ามาล่าสุด อยู่ในวงของ Cloudflare หรือไม่
+    is_valid = any(connecting_ip in network for network in CLOUDFLARE_NETWORKS)
 
     if not is_valid:
         raise HTTPException(status_code=403, detail="IP not in whitelist")
 
-    # 4. ผ่านด่าน IP แล้ว ส่งต่อไปยังขั้นตอนตรวจ Signature Key ของคุณ
+    # 4. ผ่านด่าน IP แล้ว ส่งต่อไปยังขั้นตอนต่อไป
     response = await call_next(request)
     return response
 

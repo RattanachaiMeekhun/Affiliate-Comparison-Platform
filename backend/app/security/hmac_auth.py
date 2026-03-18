@@ -17,6 +17,8 @@ async def verify_hmac_signature(
     Validates that the request was signed by a party holding the HMAC_SECRET_KEY,
     and checks that the signature hasn't expired.
     """
+    if request.method == "OPTIONS":
+        return
     if not settings.HMAC_SECRET_KEY:
         # If the key is not set, we can either bypass verification (in dev) or fail securely.
         # For production readiness, it's safer to fail if the HMAC feature is expected but unconfigured.
