@@ -39,6 +39,8 @@ async def lifespan(app: FastAPI):
     
     # ดึง IP ล่าสุดจาก Cloudflare เมื่อ Start Server
     global CLOUDFLARE_NETWORKS
+    if settings.DEBUG:
+        return
     try:
         async with httpx.AsyncClient() as client:
             resp_v4 = await client.get("https://www.cloudflare.com/ips-v4")
@@ -56,7 +58,7 @@ app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
 @app.middleware("http")
 async def cloudflare_ip_whitelist(request: Request, call_next):
-    # 1. ปล่อยผ่านถ้าเป็น OPTIONS (CORS Preflight) หรือ DEBUG
+    # 1. ปล่อยผ่านถ้าเป็น OPTIONS (CORS Preflight)
     if request.method == "OPTIONS" or settings.DEBUG:
         return await call_next(request)
         
