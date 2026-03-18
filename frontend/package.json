@@ -11,6 +11,7 @@
     "preview": "yarn build:cf && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare deploy",
     "wrangler": "wrangler",
+    "wrangler:deploy": "wrangler deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
