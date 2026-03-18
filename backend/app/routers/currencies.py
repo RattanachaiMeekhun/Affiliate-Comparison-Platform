@@ -5,7 +5,7 @@ from .. import crud, schemas, database
 
 router = APIRouter(prefix="/currencies", tags=["currencies"])
 
-@router.get("", response_model=List[schemas.CurrencyRate])
+@router.get("/", response_model=List[schemas.CurrencyRate])
 def read_currencies(db: Session = Depends(database.get_db)):
     return crud.get_currency_rates(db)
 

@@ -66,7 +66,7 @@ export async function fetchProducts(
     if (skip !== undefined) params.append('skip', skip.toString());
     if (category) params.append('category', category);
     const res = await api.get<Product[]>(
-      `/products${params.size > 0 ? '/?' + params.toString() : ''}`
+      `/products/${params.size > 0 ? '?' + params.toString() : ''}`
     );
     return res.data;
   } catch (error) {
