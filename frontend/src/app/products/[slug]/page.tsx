@@ -249,7 +249,7 @@ export default function ProductDetailPage() {
                       </div>
                     </div>
                     <div className={styles.buyRight}>
-                      <a
+                      {/* <a
                         href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/go/${mp.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -257,7 +257,7 @@ export default function ProductDetailPage() {
                         style={{ textDecoration: 'none' }}
                       >
                         View Deal →
-                      </a>
+                      </a> */}
                     </div>
                   </motion.div>
                 ))

@@ -361,7 +361,7 @@ export default function ComparePage() {
                           ) : (
                             <span className={styles.priceCellValue}>View Prices</span>
                           )}
-                          <div className={styles.priceActions}>
+                          {/* <div className={styles.priceActions}>
                             <span className={styles.detailsBtn}>Details</span>
                             {product.affiliate_products.length > 0 && (
                               <a
@@ -375,7 +375,7 @@ export default function ComparePage() {
                                 {product.affiliate_products[0].source_name} →
                               </a>
                             )}
-                          </div>
+                          </div> */}
                         </div>
                       </motion.div>
                     );
