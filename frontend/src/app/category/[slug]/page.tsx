@@ -10,7 +10,7 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { fetchCategories, fetchProducts, Category, Product } from '@/lib/api';
+import { fetchCategories, fetchProducts, Category, Product } from '@/services/api';
 
 export default function CategoryPage() {
   const params = useParams();
@@ -23,12 +23,9 @@ export default function CategoryPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [allCats, catProds] = await Promise.all([
-          fetchCategories(),
-          fetchProducts(slug)
-        ]);
-        
-        const foundCat = allCats.find(c => c.slug === slug);
+        const [allCats, catProds] = await Promise.all([fetchCategories(), fetchProducts(slug)]);
+
+        const foundCat = allCats.find((c) => c.slug === slug);
         if (foundCat) {
           setCategory(foundCat);
           setProducts(catProds);
@@ -36,7 +33,7 @@ export default function CategoryPage() {
           setCategory(null);
         }
       } catch (err) {
-        console.error("Error loading category page data", err);
+        console.error('Error loading category page data', err);
       } finally {
         setIsLoading(false);
       }
@@ -47,11 +44,19 @@ export default function CategoryPage() {
   }, [slug]);
 
   if (isLoading) {
-    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Loading category...</div></AnimatedPage>;
+    return (
+      <AnimatedPage>
+        <div style={{ textAlign: 'center', padding: 100 }}>Loading category...</div>
+      </AnimatedPage>
+    );
   }
 
   if (!category) {
-    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Category not found</div></AnimatedPage>;
+    return (
+      <AnimatedPage>
+        <div style={{ textAlign: 'center', padding: 100 }}>Category not found</div>
+      </AnimatedPage>
+    );
   }
 
   return (
@@ -71,9 +76,20 @@ export default function CategoryPage() {
           }}
         >
           <div style={{ fontSize: 40, marginBottom: 12 }}>
-            {category.icon_url ? <img src={category.icon_url} alt={category.name} width={40} height={40} /> : '📂'}
+            {category.icon_url ? (
+              <img src={category.icon_url} alt={category.name} width={40} height={40} />
+            ) : (
+              '📂'
+            )}
           </div>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 36, fontWeight: 700, marginBottom: 8 }}>
+          <h1
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 36,
+              fontWeight: 700,
+              marginBottom: 8,
+            }}
+          >
             {category.name}
           </h1>
           <p style={{ fontSize: 15, color: '#94A3B8', maxWidth: 500 }}>
@@ -86,12 +102,14 @@ export default function CategoryPage() {
 
         {/* Filter bar */}
         <ScrollReveal>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: 24,
-          }}>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginBottom: 24,
+            }}
+          >
             <div style={{ display: 'flex', gap: 8 }}>
               {['All'].map((f, i) => (
                 <button
@@ -111,35 +129,47 @@ export default function CategoryPage() {
                 </button>
               ))}
             </div>
-            <button style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: '8px 16px',
-              fontSize: 13,
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-sm)',
-              background: 'white',
-              cursor: 'pointer',
-              color: 'var(--text-secondary)',
-            }}>
+            <button
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px',
+                fontSize: 13,
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-sm)',
+                background: 'white',
+                cursor: 'pointer',
+                color: 'var(--text-secondary)',
+              }}
+            >
               <FilterOutlined /> Filters
             </button>
           </div>
         </ScrollReveal>
 
         {/* Product Grid */}
-        <StaggerWrapper style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-          gap: 16,
-        }}>
+        <StaggerWrapper
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+            gap: 16,
+          }}
+        >
           {products.map((product) => {
-            const bestPrice = product.affiliate_products.length > 0 
-                ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0)) 
+            const bestPrice =
+              product.affiliate_products.length > 0
+                ? Math.min(
+                    ...product.affiliate_products
+                      .map((p) => Number(p.price) || 0)
+                      .filter((p) => p > 0)
+                  )
                 : Number(product.price) || 0;
-            
-            const imgUrl = product.image_url || product.affiliate_products.find(p => p.image_url)?.image_url || '/placeholder.png';
+
+            const imgUrl =
+              product.image_url ||
+              product.affiliate_products.find((p) => p.image_url)?.image_url ||
+              '/placeholder.png';
             const specs = product.specs || {};
 
             return (
@@ -160,46 +190,71 @@ export default function CategoryPage() {
                   >
                     {product.best_value && (
                       <div style={{ position: 'absolute', zIndex: 2, margin: 12 }}>
-                        <span className="badge badge-danger">
-                          Best Value
-                        </span>
+                        <span className="badge badge-danger">Best Value</span>
                       </div>
                     )}
-                    <div style={{
-                      width: '100%',
-                      height: 160,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: 'var(--bg-secondary)',
-                      padding: 16,
-                      position: 'relative',
-                    }}>
-                      <img 
-                        src={imgUrl} 
-                        alt={product.name} 
+                    <div
+                      style={{
+                        width: '100%',
+                        height: 160,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: 'var(--bg-secondary)',
+                        padding: 16,
+                        position: 'relative',
+                      }}
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={product.name}
                         style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
                         referrerPolicy="no-referrer"
-                        onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/100?text=No+Image'; }}
+                        onError={(e) => {
+                          e.currentTarget.src = 'https://via.placeholder.com/100?text=No+Image';
+                        }}
                       />
                     </div>
                     <div style={{ padding: 16 }}>
-                      <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 6, lineHeight: 1.4, height: 40, overflow: 'hidden' }}>
+                      <h3
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          marginBottom: 6,
+                          lineHeight: 1.4,
+                          height: 40,
+                          overflow: 'hidden',
+                        }}
+                      >
                         {product.name}
                       </h3>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8, height: 22, overflow: 'hidden' }}>
-                        {Object.entries(specs).slice(0, 2).map(([k, v]) => (
-                          <span key={k} style={{
-                            fontSize: 11,
-                            padding: '2px 8px',
-                            background: 'var(--bg-secondary)',
-                            borderRadius: 100,
-                            color: 'var(--text-muted)',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            {String(v)}
-                          </span>
-                        ))}
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexWrap: 'wrap',
+                          gap: 4,
+                          marginBottom: 8,
+                          height: 22,
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {Object.entries(specs)
+                          .slice(0, 2)
+                          .map(([k, v]) => (
+                            <span
+                              key={k}
+                              style={{
+                                fontSize: 11,
+                                padding: '2px 8px',
+                                background: 'var(--bg-secondary)',
+                                borderRadius: 100,
+                                color: 'var(--text-muted)',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {String(v)}
+                            </span>
+                          ))}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                         {bestPrice > 0 ? (
@@ -207,24 +262,24 @@ export default function CategoryPage() {
                             ${bestPrice.toLocaleString()}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 16, fontWeight: 700 }}>
-                            View Prices
-                          </span>
+                          <span style={{ fontSize: 16, fontWeight: 700 }}>View Prices</span>
                         )}
                       </div>
-                      <div style={{
-                        fontSize: 12,
-                        fontWeight: 500,
-                        marginTop: 6,
-                        color: 'var(--text-muted)',
-                      }}>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 500,
+                          marginTop: 6,
+                          color: 'var(--text-muted)',
+                        }}
+                      >
                         Score: {product.trending_score || 'N/A'}
                       </div>
                     </div>
                   </Link>
                 </motion.div>
               </StaggerChild>
-            )
+            );
           })}
         </StaggerWrapper>
 

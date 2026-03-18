@@ -14,10 +14,10 @@ import {
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '@/store';
 import { resetBuilder } from '@/store/slices/builderSlice';
-import { formatPrice } from '@/lib/formatters';
+import { formatPrice } from '@/services/formatters';
 import { useCurrency } from '@/context/CurrencyContext';
 import { getRecommendations } from './builderData';
-import { SetBuilderRecommendation } from '@/lib/setbuilderApi';
+import { SetBuilderRecommendation } from '@/services/setbuilderApi';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   processor: <ThunderboltOutlined />,
@@ -80,9 +80,7 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, 
         <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--text-primary)' }}>
           🤖 AI is building your perfect setup...
         </div>
-        <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>
-          This may take a few seconds
-        </div>
+        <div style={{ fontSize: 14, color: 'var(--text-muted)' }}>This may take a few seconds</div>
       </motion.div>
     );
   }

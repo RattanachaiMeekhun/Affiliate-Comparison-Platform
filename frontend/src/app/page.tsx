@@ -9,9 +9,9 @@ import AnimatedPage, {
   StaggerWrapper,
   StaggerChild,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { Category, fetchCategories, fetchProducts, Product } from '@/lib/api';
+import { Category, fetchCategories, fetchProducts, Product } from '@/services/api';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatPrice } from '@/lib/formatters';
+import { formatPrice } from '@/services/formatters';
 import { mockCategories } from '@/util/mockData';
 import styles from './page.module.css';
 

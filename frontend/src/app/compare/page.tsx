@@ -11,7 +11,7 @@ import AnimatedPage, {
   ScrollReveal,
   staggerItem,
 } from '@/components/AnimatedLayout/AnimatedLayout';
-import { fetchProducts, Product } from '@/lib/api';
+import { fetchProducts, Product } from '@/services/api';
 import styles from './page.module.css';
 
 const brands = ['Apple', 'Dell', 'ASUS', 'Lenovo'];

@@ -6,12 +6,10 @@ import { Input } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
-import { fetchProducts, Product } from '@/lib/api';
+import { fetchProducts, Product } from '@/services/api';
 import CurrencySelector from '@/components/CurrencySelector/CurrencySelector';
 import Logo from '@/components/Branding/Logo';
 import styles from './Header.module.css';
-
-
 
 const navLinks = [
   { label: 'Deals', href: '/' },
@@ -35,7 +33,7 @@ export default function Header() {
         const prods = await fetchProducts();
         setAllProducts(prods);
       } catch (e) {
-        console.error("Failed to load products for search");
+        console.error('Failed to load products for search');
       }
     }
     initSearch();
@@ -55,10 +53,15 @@ export default function Header() {
     const val = e.target.value;
     setQuery(val);
     if (val.trim().length > 1) {
-      const filtered = allProducts.filter(p => 
-        p.name.toLowerCase().includes(val.toLowerCase()) || 
-        (p.specs && p.specs.brand && String(p.specs.brand).toLowerCase().includes(val.toLowerCase()))
-      ).slice(0, 5); // Max 5 results
+      const filtered = allProducts
+        .filter(
+          (p) =>
+            p.name.toLowerCase().includes(val.toLowerCase()) ||
+            (p.specs &&
+              p.specs.brand &&
+              String(p.specs.brand).toLowerCase().includes(val.toLowerCase()))
+        )
+        .slice(0, 5); // Max 5 results
       setResults(filtered);
       setIsSearching(true);
     } else {
@@ -97,7 +100,9 @@ export default function Header() {
               placeholder="Search hardware..."
               value={query}
               onChange={handleSearch}
-              onFocus={() => { if (query.trim().length > 1) setIsSearching(true) }}
+              onFocus={() => {
+                if (query.trim().length > 1) setIsSearching(true);
+              }}
               prefix={<SearchOutlined style={{ color: '#9CA3AF' }} />}
               style={{
                 borderRadius: 8,
@@ -105,7 +110,7 @@ export default function Header() {
                 background: 'var(--bg-secondary)',
               }}
             />
-            
+
             <AnimatePresence>
               {isSearching && (
                 <motion.div
@@ -121,22 +126,24 @@ export default function Header() {
                     marginTop: 8,
                     background: 'white',
                     borderRadius: 8,
-                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                    boxShadow:
+                      '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
                     border: '1px solid var(--border)',
                     overflow: 'hidden',
-                    zIndex: 1000
+                    zIndex: 1000,
                   }}
                 >
                   {results.length > 0 ? (
                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                       {results.map((product) => {
-                         const imgUrl = product.affiliate_products && product.affiliate_products.length > 0
-                          ? product.affiliate_products[0].image_url 
-                          : '/placeholder.png';
-                          
+                        const imgUrl =
+                          product.affiliate_products && product.affiliate_products.length > 0
+                            ? product.affiliate_products[0].image_url
+                            : '/placeholder.png';
+
                         return (
-                          <Link 
-                            key={product.id} 
+                          <Link
+                            key={product.id}
                             href={`/products/${product.slug}`}
                             onClick={() => {
                               setIsSearching(false);
@@ -150,19 +157,32 @@ export default function Header() {
                               borderBottom: '1px solid var(--border)',
                               textDecoration: 'none',
                               color: 'inherit',
-                              transition: 'background 0.2s'
+                              transition: 'background 0.2s',
                             }}
-                            onMouseOver={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-                            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            onMouseOver={(e) =>
+                              (e.currentTarget.style.background = 'var(--bg-secondary)')
+                            }
+                            onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
-                            <img 
-                              src={imgUrl || '/placeholder.png'} 
+                            <img
+                              src={imgUrl || '/placeholder.png'}
                               alt={product.name}
                               style={{ width: 40, height: 40, objectFit: 'contain' }}
-                              onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/40?text=No+Image'; }}
+                              onError={(e) => {
+                                e.currentTarget.src =
+                                  'https://via.placeholder.com/40?text=No+Image';
+                              }}
                             />
                             <div style={{ flex: 1, overflow: 'hidden' }}>
-                              <div style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              <div
+                                style={{
+                                  fontWeight: 600,
+                                  fontSize: 13,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
                                 {product.name}
                               </div>
                               <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
@@ -170,11 +190,18 @@ export default function Header() {
                               </div>
                             </div>
                           </Link>
-                        )
+                        );
                       })}
                     </div>
                   ) : (
-                    <div style={{ padding: '16px', textAlign: 'center', fontSize: 13, color: 'var(--text-muted)' }}>
+                    <div
+                      style={{
+                        padding: '16px',
+                        textAlign: 'center',
+                        fontSize: 13,
+                        color: 'var(--text-muted)',
+                      }}
+                    >
                       No hardware found matching "{query}"
                     </div>
                   )}
@@ -186,8 +213,6 @@ export default function Header() {
           <div style={{ marginLeft: 16 }}>
             <CurrencySelector />
           </div>
-
-
         </div>
       </motion.header>
     </>

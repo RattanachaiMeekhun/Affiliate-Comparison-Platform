@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { fetchCurrencies, CurrencyRate } from '@/lib/api';
+import { fetchCurrencies, CurrencyRate } from '@/services/api';
 
 interface CurrencyContextType {
   selectedCurrency: string;
@@ -29,7 +29,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
         const data = await fetchCurrencies();
         setRates(data);
       } catch (err) {
-        console.error("Error loading exchange rates", err);
+        console.error('Error loading exchange rates', err);
       } finally {
         setIsLoading(false);
       }

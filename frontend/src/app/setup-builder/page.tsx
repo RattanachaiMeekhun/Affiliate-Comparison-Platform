@@ -10,7 +10,7 @@ import ReviewBuild from '@/components/SetupBuilder/ReviewBuild';
 import { steps } from '@/components/SetupBuilder/builderData';
 import { useState, useEffect } from 'react';
 import { useCurrency } from '@/context/CurrencyContext';
-import { SetBuilderRecommendation, fetchSetBuilderRecommendation } from '@/lib/setbuilderApi';
+import { SetBuilderRecommendation, fetchSetBuilderRecommendation } from '@/services/setbuilderApi';
 
 export default function SetupBuilderPage() {
   const [form] = Form.useForm();

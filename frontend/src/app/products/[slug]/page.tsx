@@ -4,11 +4,18 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { BellOutlined, SettingOutlined, CheckCircleFilled, CloseCircleFilled, InfoCircleOutlined, ShopOutlined } from '@ant-design/icons';
+import {
+  BellOutlined,
+  SettingOutlined,
+  CheckCircleFilled,
+  CloseCircleFilled,
+  InfoCircleOutlined,
+  ShopOutlined,
+} from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal } from '@/components/AnimatedLayout/AnimatedLayout';
-import { fetchProducts, Product, Category, fetchCategories } from '@/lib/api';
+import { fetchProducts, Product, Category, fetchCategories } from '@/services/api';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatPrice } from '@/lib/formatters';
+import { formatPrice } from '@/services/formatters';
 import styles from './page.module.css';
 
 export default function ProductDetailPage() {
@@ -25,18 +32,18 @@ export default function ProductDetailPage() {
     async function loadData() {
       try {
         const [allProds, allCats] = await Promise.all([fetchProducts(), fetchCategories()]);
-        
-        const foundProd = allProds.find(p => p.slug === slug);
+
+        const foundProd = allProds.find((p) => p.slug === slug);
         if (foundProd) {
           setProduct(foundProd);
-          
+
           if (foundProd.category_id) {
-            const foundCat = allCats.find(c => c.id === foundProd.category_id);
+            const foundCat = allCats.find((c) => c.id === foundProd.category_id);
             if (foundCat) setCategory(foundCat);
           }
         }
       } catch (err) {
-        console.error("Error loading product page data", err);
+        console.error('Error loading product page data', err);
       } finally {
         setIsLoading(false);
       }
@@ -47,19 +54,33 @@ export default function ProductDetailPage() {
   }, [slug]);
 
   if (isLoading) {
-    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Loading product...</div></AnimatedPage>;
+    return (
+      <AnimatedPage>
+        <div style={{ textAlign: 'center', padding: 100 }}>Loading product...</div>
+      </AnimatedPage>
+    );
   }
 
   if (!product) {
-    return <AnimatedPage><div style={{ textAlign: 'center', padding: 100 }}>Product not found</div></AnimatedPage>;
+    return (
+      <AnimatedPage>
+        <div style={{ textAlign: 'center', padding: 100 }}>Product not found</div>
+      </AnimatedPage>
+    );
   }
 
   const specs = product.specs || {};
-  const bestPrice = product.affiliate_products.length > 0
-    ? Math.min(...product.affiliate_products.map(p => Number(p.price) || 0).filter(p => p > 0))
-    : Number(product.price) || 0;
-  
-  const imgUrl = product.image_url || product.affiliate_products.find(p => p.image_url)?.image_url || '/placeholder.png';
+  const bestPrice =
+    product.affiliate_products.length > 0
+      ? Math.min(
+          ...product.affiliate_products.map((p) => Number(p.price) || 0).filter((p) => p > 0)
+        )
+      : Number(product.price) || 0;
+
+  const imgUrl =
+    product.image_url ||
+    product.affiliate_products.find((p) => p.image_url)?.image_url ||
+    '/placeholder.png';
 
   // Parse AI insight if it's a JSON string, otherwise just display it as text
   let aiVerdict: any = null;
@@ -100,24 +121,23 @@ export default function ProductDetailPage() {
               transition={{ duration: 0.6 }}
             >
               <div className={styles.heroImage}>
-                <img 
-                  src={imgUrl} 
-                  alt={product.name} 
+                <img
+                  src={imgUrl}
+                  alt={product.name}
                   style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }}
                   referrerPolicy="no-referrer"
                 />
               </div>
               <div className={styles.heroBadges}>
-                {product.best_value && (
-                  <span className="badge badge-danger">Best Value</span>
-                )}
-                {specs.brand && (
-                  <span className="badge badge-primary">{specs.brand}</span>
-                )}
+                {product.best_value && <span className="badge badge-danger">Best Value</span>}
+                {specs.brand && <span className="badge badge-primary">{specs.brand}</span>}
               </div>
               <h1 className={styles.heroProductName}>{product.name}</h1>
               <p className={styles.heroSpecs}>
-                {Object.entries(specs).slice(0, 4).map(([k,v]) => `${k}: ${v}`).join(' • ')}
+                {Object.entries(specs)
+                  .slice(0, 4)
+                  .map(([k, v]) => `${k}: ${v}`)
+                  .join(' • ')}
               </p>
             </motion.div>
 
@@ -128,7 +148,9 @@ export default function ProductDetailPage() {
                   <span className={styles.ratingScore}>{product.trending_score || 'N/A'}</span>
                   <div style={{ marginLeft: 12, display: 'flex', flexDirection: 'column' }}>
                     <strong style={{ fontSize: 14 }}>Trending Score</strong>
-                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>Based on AI analysis</span>
+                    <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                      Based on AI analysis
+                    </span>
                   </div>
                 </div>
                 <div className={styles.priceBlock}>
@@ -167,13 +189,17 @@ export default function ProductDetailPage() {
                     <div className={styles.specGroup} style={{ flex: '1 1 100%' }}>
                       {Object.entries(specs).map(([k, v]) => (
                         <div key={k} className={styles.specRow}>
-                          <span className={styles.specKey} style={{ textTransform: 'capitalize' }}>{k}</span>
+                          <span className={styles.specKey} style={{ textTransform: 'capitalize' }}>
+                            {k}
+                          </span>
                           <span className={styles.specVal}>{String(v)}</span>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <div style={{ padding: 20, color: 'var(--text-muted)' }}>No detailed specifications available.</div>
+                    <div style={{ padding: 20, color: 'var(--text-muted)' }}>
+                      No detailed specifications available.
+                    </div>
                   )}
                 </div>
               </div>
@@ -204,26 +230,46 @@ export default function ProductDetailPage() {
                         <ShopOutlined />
                       </div>
                       <div style={{ overflow: 'hidden' }}>
-                        <div className={styles.buyName} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
-                            {mp.source_name}
+                        <div
+                          className={styles.buyName}
+                          style={{
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            maxWidth: '120px',
+                          }}
+                        >
+                          {mp.source_name}
                         </div>
                         <div className={styles.buyShipping}>
-                          {(mp.price && Number(mp.price) > 0) 
+                          {mp.price && Number(mp.price) > 0
                             ? formatPrice(mp.price, mp.currency || 'THB', selectedCurrency, rates)
-                            : 'Check Price'
-                          }
+                            : 'Check Price'}
                         </div>
                       </div>
                     </div>
                     <div className={styles.buyRight}>
-                      <a href={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/affiliate/go/${mp.id}`} target="_blank" rel="noopener noreferrer" className={styles.buyLink} style={{ textDecoration: 'none' }}>
+                      <a
+                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/go/${mp.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={styles.buyLink}
+                        style={{ textDecoration: 'none' }}
+                      >
                         View Deal →
                       </a>
                     </div>
                   </motion.div>
                 ))
               ) : (
-                <div style={{ fontSize: 13, color: 'var(--text-muted)', textAlign: 'center', padding: '12px 0' }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    color: 'var(--text-muted)',
+                    textAlign: 'center',
+                    padding: '12px 0',
+                  }}
+                >
                   No active listings found for this product.
                 </div>
               )}
@@ -233,20 +279,22 @@ export default function ProductDetailPage() {
             {(aiVerdict || product.ai_insight) && (
               <div className={styles.verdictPanel}>
                 <h3 className={styles.verdictTitle}>AI Analysis</h3>
-                {aiVerdict?.pros && aiVerdict?.pros.map((pro: string, i: number) => (
-                  <div key={`pro-${i}`} className={styles.verdictItem}>
-                    <CheckCircleFilled className={styles.verdictPro} />
-                    <span>{pro}</span>
-                  </div>
-                ))}
-                {aiVerdict?.cons && aiVerdict?.cons.map((con: string, i: number) => (
-                  <div key={`con-${i}`} className={styles.verdictItem}>
-                    <CloseCircleFilled className={styles.verdictCon} />
-                    <span>{con}</span>
-                  </div>
-                ))}
-                
-                {(!aiVerdict?.pros && !aiVerdict?.cons && typeof product.ai_insight === 'string') && (
+                {aiVerdict?.pros &&
+                  aiVerdict?.pros.map((pro: string, i: number) => (
+                    <div key={`pro-${i}`} className={styles.verdictItem}>
+                      <CheckCircleFilled className={styles.verdictPro} />
+                      <span>{pro}</span>
+                    </div>
+                  ))}
+                {aiVerdict?.cons &&
+                  aiVerdict?.cons.map((con: string, i: number) => (
+                    <div key={`con-${i}`} className={styles.verdictItem}>
+                      <CloseCircleFilled className={styles.verdictCon} />
+                      <span>{con}</span>
+                    </div>
+                  ))}
+
+                {!aiVerdict?.pros && !aiVerdict?.cons && typeof product.ai_insight === 'string' && (
                   <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                     <InfoCircleOutlined style={{ marginRight: 6, color: 'var(--primary)' }} />
                     {product.ai_insight}
