@@ -23,7 +23,13 @@ export default function CategoryPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [allCats, catProds] = await Promise.all([fetchCategories(), fetchProducts(slug)]);
+        // We still need all categories to find the current one's name/icon if fetchCategories is cheap
+        // but it's better to have a fetchCategoryBySlug. For now, this is already better than before
+        // because we are only fetching products FOR THIS category.
+        const [allCats, catProds] = await Promise.all([
+          fetchCategories(),
+          fetchProducts(slug)
+        ]);
 
         const foundCat = allCats.find((c) => c.slug === slug);
         if (foundCat) {

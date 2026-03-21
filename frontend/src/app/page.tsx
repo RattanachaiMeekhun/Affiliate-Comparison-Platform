@@ -39,6 +39,25 @@ export default function HomePage() {
     loadData();
   }, []);
 
+  async function handleTabClick(categoryName: string) {
+    setActiveTab(categoryName);
+    setIsLoading(true);
+    try {
+      // If 'All Categories' is selected, fetch all products, otherwise find the category slug
+      const categorySlug =
+        categoryName === 'All Categories'
+          ? undefined
+          : categories.find((c) => c.name === categoryName)?.slug;
+
+      const prods = await fetchProducts(categorySlug);
+      setProducts(prods);
+    } catch (err) {
+      console.error('Error filtering products', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
     <AnimatedPage>
       <div className="container" style={{ paddingTop: 32, paddingBottom: 40 }}>
@@ -123,13 +142,22 @@ export default function HomePage() {
               <h2 className={styles.sectionTitle}>Trending Hardware Deals</h2>
             </div>
             <div className={styles.filterTabs}>
+              <button
+                key={'all'}
+                className={`${styles.filterTab} ${
+                  activeTab === 'All Categories' ? styles.filterTabActive : ''
+                }`}
+                onClick={() => handleTabClick('All Categories')}
+              >
+                All Categories
+              </button>
               {categories.map((category) => (
                 <button
                   key={category.id}
                   className={`${styles.filterTab} ${
                     activeTab === category.name ? styles.filterTabActive : ''
                   }`}
-                  onClick={() => setActiveTab(category.name)}
+                  onClick={() => handleTabClick(category.name)}
                 >
                   {category.name}
                 </button>

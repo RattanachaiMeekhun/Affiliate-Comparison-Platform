@@ -34,7 +34,11 @@ async def create_category(
 def read_categories(
     skip: int = 0, limit: int = 100, db: Session = Depends(database.get_db)
 ):
-    return crud.get_categories(db, skip=skip, limit=limit)
+    try:
+        return crud.get_categories(db, skip=skip, limit=limit)
+    except Exception as e:
+        print(f"Failed to get categories: {e}")
+        return []
 
 
 @router.patch("/", response_model=List[schemas.Category])

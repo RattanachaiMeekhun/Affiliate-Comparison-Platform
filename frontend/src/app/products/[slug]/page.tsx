@@ -13,7 +13,7 @@ import {
   ShopOutlined,
 } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal } from '@/components/AnimatedLayout/AnimatedLayout';
-import { fetchProducts, Product, Category, fetchCategories } from '@/services/api';
+import { fetchProductBySlug, Product, Category, fetchCategories } from '@/services/api';
 import { useCurrency } from '@/context/CurrencyContext';
 import { formatPrice } from '@/services/formatters';
 import styles from './page.module.css';
@@ -31,9 +31,11 @@ export default function ProductDetailPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [allProds, allCats] = await Promise.all([fetchProducts(), fetchCategories()]);
+        const [foundProd, allCats] = await Promise.all([
+          fetchProductBySlug(slug),
+          fetchCategories(),
+        ]);
 
-        const foundProd = allProds.find((p) => p.slug === slug);
         if (foundProd) {
           setProduct(foundProd);
 

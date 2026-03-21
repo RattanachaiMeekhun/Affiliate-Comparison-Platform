@@ -7,14 +7,14 @@ from typing import List
 
 
 def get_product(db: Session, product_id: uuid.UUID):
-    return db.query(models.Product).filter(models.Product.id == product_id).first()
+    return db.query(models.Product).options(joinedload(models.Product.affiliate_products)).filter(models.Product.id == product_id).order_by(models.Product.trending_score.desc()).first()
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 100):
     return (
         db.query(models.Product)
         .options(joinedload(models.Product.affiliate_products))
-        .order_by(models.Product.image_url.is_not(None).desc())
+        .order_by(models.Product.trending_score.desc())
         .offset(skip)
         .limit(limit)
         .all()
@@ -129,6 +129,7 @@ def get_products_by_category(
             db.query(models.Product)
             .options(joinedload(models.Product.affiliate_products))
             .filter(models.Product.category_id == category)
+            .order_by(models.Product.trending_score.desc())
             .offset(skip)
             .limit(limit)
             .all()
@@ -156,7 +157,7 @@ def get_category(db: Session, category_id: uuid.UUID):
 
 
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).offset(skip).limit(limit).all()
+    return db.query(models.Category).order_by(models.Category.sort_order.asc()).offset(skip).limit(limit).all()
 
 
 def get_category_by_slug(db: Session, slug: str):

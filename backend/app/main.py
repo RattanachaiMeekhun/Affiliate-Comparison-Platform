@@ -37,18 +37,18 @@ async def lifespan(app: FastAPI):
     # Startup
     scheduler = setup_scheduler()
     
+        
     # ดึง IP ล่าสุดจาก Cloudflare เมื่อ Start Server
     global CLOUDFLARE_NETWORKS
-    if settings.DEBUG:
-        return
-    try:
-        async with httpx.AsyncClient() as client:
-            resp_v4 = await client.get("https://www.cloudflare.com/ips-v4")
-            resp_v6 = await client.get("https://www.cloudflare.com/ips-v6")
-            ips = resp_v4.text.splitlines() + resp_v6.text.splitlines()
-            CLOUDFLARE_NETWORKS = [ipaddress.ip_network(ip) for ip in ips if ip]
-    except Exception as e:
-        print(f"Failed to fetch CF IPs: {e}")
+    if not settings.DEBUG:
+        try:
+            async with httpx.AsyncClient() as client:
+                resp_v4 = await client.get("https://www.cloudflare.com/ips-v4")
+                resp_v6 = await client.get("https://www.cloudflare.com/ips-v6")
+                ips = resp_v4.text.splitlines() + resp_v6.text.splitlines()
+                CLOUDFLARE_NETWORKS = [ipaddress.ip_network(ip) for ip in ips if ip]
+        except Exception as e:
+            print(f"Failed to fetch CF IPs: {e}")
         
     yield
     # Shutdown

@@ -86,6 +86,24 @@ export async function fetchProductById(id: string): Promise<Product | null> {
   }
 }
 
+export async function fetchProductBySlug(slug: string): Promise<Product | null> {
+  try {
+    // Current backend doesn't have a direct /products/slug/{slug} endpoint,
+    // but read_products supports a category filter. 
+    // We should ideally add a specific endpoint to the backend, 
+    // but for now we can use /products/?slug=... if the backend supports it,
+    // or fetch products and find it (which is what we want to avoid).
+    
+    // Check if backend crud.py has get_product_by_slug (it doesn't seem to have a router for it yet)
+    // Actually, I should add a router for it in the backend first.
+    const res = await api.get<Product[]>(`/products/?limit=1&slug=${slug}`);
+    return res.data.length > 0 ? res.data[0] : null;
+  } catch (error: any) {
+    console.error(`Failed to fetch product by slug ${slug}`, error);
+    return null;
+  }
+}
+
 export interface CurrencyRate {
   code: string;
   rate: number;
