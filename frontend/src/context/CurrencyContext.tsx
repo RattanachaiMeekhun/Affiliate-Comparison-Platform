@@ -3,6 +3,8 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { fetchCurrencies, CurrencyRate } from '@/services/api';
 
+import { detectUserCurrency } from '@/util/location';
+
 interface CurrencyContextType {
   selectedCurrency: string;
   setSelectedCurrency: (currency: string) => void;
@@ -18,13 +20,19 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load persisted currency from localStorage
-    const saved = localStorage.getItem('selectedCurrency');
-    if (saved) {
-      setSelectedCurrencyState(saved);
-    }
+    async function initializeData() {
+      // Auto-detect currency if not saved in localStorage
+      const saved = localStorage.getItem('selectedCurrency');
+      if (saved) {
+        setSelectedCurrencyState(saved);
+      } else {
+        const detectedCurrency = await detectUserCurrency();
+        if (detectedCurrency) {
+          setSelectedCurrencyState(detectedCurrency);
+          localStorage.setItem('selectedCurrency', detectedCurrency); // Explicitly save it
+        }
+      }
 
-    async function loadRates() {
       try {
         const data = await fetchCurrencies();
         setRates(data);
@@ -34,7 +42,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
     }
-    loadRates();
+    initializeData();
   }, []);
 
   const setSelectedCurrency = (currency: string) => {

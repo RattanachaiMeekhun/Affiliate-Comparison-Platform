@@ -30,6 +30,9 @@ def build_product_text(product: Product) -> str:
 
     if product.ai_insight:
         parts.append(product.ai_insight)
+    
+    if product.id:
+        parts.append(f"ID: {product.id}")
 
     return ". ".join(parts)
 

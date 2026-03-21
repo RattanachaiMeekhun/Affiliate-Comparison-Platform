@@ -1,19 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { ArrowRightOutlined, ThunderboltOutlined } from '@ant-design/icons';
-import AnimatedPage, {
-  ScrollReveal,
-  StaggerWrapper,
-  StaggerChild,
-} from '@/components/AnimatedLayout/AnimatedLayout';
+import AnimatedPage from '@/components/AnimatedLayout/AnimatedLayout';
 import { Category, fetchCategories, fetchProducts, Product } from '@/services/api';
 import { useCurrency } from '@/context/CurrencyContext';
-import { formatPrice } from '@/services/formatters';
 import { mockCategories } from '@/util/mockData';
 import styles from './page.module.css';
+
+// New Modular Components
+import Hero from '@/components/Home/Hero';
+import CategorySection from '@/components/Home/CategorySection';
+import ProductSection from '@/components/Home/ProductSection';
 
 import { useState, useEffect } from 'react';
 
@@ -23,13 +20,22 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(8);
+  const [hasMore, setHasMore] = useState(true);
+  const ITEMS_PER_PAGE = 8;
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [prods, categories] = await Promise.all([fetchProducts(), fetchCategories()]);
+        const [prods, cats] = await Promise.all([
+          fetchProducts(undefined, 0, ITEMS_PER_PAGE),
+          fetchCategories(),
+        ]);
+        console.log({ cats });
+
         setProducts(prods);
-        setCategories(categories);
+        setCategories(cats);
+        setHasMore(prods.length === ITEMS_PER_PAGE);
       } catch (err) {
         console.error('Error loading home page data', err);
       } finally {
@@ -39,197 +45,70 @@ export default function HomePage() {
     loadData();
   }, []);
 
+  useEffect(() => {
+    if (visibleCount > ITEMS_PER_PAGE) {
+      async function loadMore() {
+        try {
+          const categorySlug =
+            activeTab === 'All Categories'
+              ? undefined
+              : categories.find((c) => c.name === activeTab)?.slug;
+          const skip = visibleCount - ITEMS_PER_PAGE;
+          const moreProds = await fetchProducts(categorySlug, skip, ITEMS_PER_PAGE);
+          setProducts((prev) => {
+            // Avoid duplicate additions from strict mode double invocation
+            const existingIds = new Set(prev.map((p) => p.id));
+            const newProds = moreProds.filter((p) => !existingIds.has(p.id));
+            return [...prev, ...newProds];
+          });
+          setHasMore(moreProds.length === ITEMS_PER_PAGE);
+        } catch (err) {
+          console.error('Error loading more products', err);
+        }
+      }
+      loadMore();
+    }
+  }, [visibleCount, activeTab, categories]);
+
   async function handleTabClick(categoryName: string) {
     setActiveTab(categoryName);
     setIsLoading(true);
+    setVisibleCount(ITEMS_PER_PAGE);
     try {
-      // If 'All Categories' is selected, fetch all products, otherwise find the category slug
       const categorySlug =
         categoryName === 'All Categories'
           ? undefined
           : categories.find((c) => c.name === categoryName)?.slug;
 
-      const prods = await fetchProducts(categorySlug);
+      const prods = await fetchProducts(categorySlug, 0, ITEMS_PER_PAGE);
       setProducts(prods);
+      setHasMore(prods.length === ITEMS_PER_PAGE);
     } catch (err) {
       console.error('Error filtering products', err);
     } finally {
       setIsLoading(false);
     }
   }
+  console.log(products);
 
   return (
     <AnimatedPage>
       <div className="container" style={{ paddingTop: 32, paddingBottom: 40 }}>
-        {/* ═══════ Hero Section ═══════ */}
-        <motion.section
-          className={styles.heroSection}
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <div className={styles.heroContent}>
-            <motion.h1
-              className={styles.heroTitle}
-              initial={{ opacity: 0, y: 24 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.6 }}
-            >
-              Curated Deals for Professional Workflows
-            </motion.h1>
-            <motion.p
-              className={styles.heroSubtitle}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.25, duration: 0.5 }}
-            >
-              Stop guessing. Our AI analyzes thousands of benchmarks to find high-performance
-              hardware tailored specifically for data science, 3D rendering, and 4K video editing.
-            </motion.p>
-            <motion.div
-              className={styles.heroCtas}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35, duration: 0.5 }}
-            >
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link href="/compare" className={styles.ctaPrimary}>
-                  View Top Deals <ArrowRightOutlined />
-                </Link>
-              </motion.div>
-              <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <Link href="/compare" className={styles.ctaSecondary}>
-                  <ThunderboltOutlined /> Compare Specs
-                </Link>
-              </motion.div>
-            </motion.div>
-          </div>
-        </motion.section>
+        <Hero />
 
-        {/* ═══════ Find Your Perfect Setup ═══════ */}
-        <ScrollReveal>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Find Your Perfect Setup</h2>
-              <p className={styles.sectionSubtitle}>
-                Hardware recommendations optimized for your specific workflow requirements.
-              </p>
-            </div>
-            <Link href="/setup-builder" className={styles.viewAll}>
-              Setup Builder <ArrowRightOutlined />
-            </Link>
-          </div>
-        </ScrollReveal>
+        <CategorySection categories={mockCategories} />
 
-        <StaggerWrapper className={styles.categoryGrid}>
-          {mockCategories.map((category) => (
-            <StaggerChild key={category.id}>
-              <motion.div whileHover={{ y: -4 }} whileTap={{ scale: 0.98 }}>
-                <Link href={`/category/${category.slug}`} className={styles.categoryCard}>
-                  <div className={styles.categoryIcon}>{category.icon}</div>
-                  <h3 className={styles.categoryName}>{category.name}</h3>
-                  <p className={styles.categoryDesc}>{category.description}</p>
-                </Link>
-              </motion.div>
-            </StaggerChild>
-          ))}
-        </StaggerWrapper>
-
-        {/* ═══════ Trending Hardware Deals ═══════ */}
-        <ScrollReveal>
-          <div className={styles.sectionHeader}>
-            <div>
-              <h2 className={styles.sectionTitle}>Trending Hardware Deals</h2>
-            </div>
-            <div className={styles.filterTabs}>
-              <button
-                key={'all'}
-                className={`${styles.filterTab} ${
-                  activeTab === 'All Categories' ? styles.filterTabActive : ''
-                }`}
-                onClick={() => handleTabClick('All Categories')}
-              >
-                All Categories
-              </button>
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  className={`${styles.filterTab} ${
-                    activeTab === category.name ? styles.filterTabActive : ''
-                  }`}
-                  onClick={() => handleTabClick(category.name)}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </ScrollReveal>
-
-        {isLoading ? (
-          <div style={{ textAlign: 'center', padding: 40 }}>Loading products...</div>
-        ) : (
-          <StaggerWrapper className={styles.productGrid}>
-            {products.slice(0, 8).map((product) => {
-              const bestPrice =
-                product.affiliate_products.length > 0
-                  ? Math.min(
-                      ...product.affiliate_products
-                        .map((p) => Number(p.price) || 0)
-                        .filter((p) => p > 0)
-                    )
-                  : Number(product.price) || 0;
-
-              const imgUrl = product.image_url || '/placeholder.png'; // Assume placeholder exists or fails gracefully
-
-              return (
-                <StaggerChild key={product.id}>
-                  <motion.div whileHover={{ y: -5 }} whileTap={{ scale: 0.98 }}>
-                    <Link href={`/products/${product.slug}`} className={styles.productCard}>
-                      {product.best_value && (
-                        <div className={styles.productBadge}>
-                          <span className="badge badge-danger">Best Value</span>
-                        </div>
-                      )}
-                      <div className={styles.productImage}>
-                        {/* Fallback image if cross-domain error */}
-                        <img
-                          src={imgUrl}
-                          alt={product.name}
-                          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                          onError={(e) => {
-                            e.currentTarget.src = '/no-image.png';
-                          }}
-                        />
-                      </div>
-                      <div className={styles.productInfo}>
-                        <h3 className={styles.productName}>{product.name}</h3>
-                        <div className={styles.productPrice}>
-                          {bestPrice > 0 ? (
-                            <span className={styles.priceValue}>
-                              {formatPrice(
-                                bestPrice,
-                                product.currency || 'THB',
-                                selectedCurrency,
-                                rates
-                              )}
-                            </span>
-                          ) : (
-                            <span className={styles.priceValue}>View Prices</span>
-                          )}
-                        </div>
-
-                        <div className={`${styles.productTrend} ${styles.trendStable}`}>
-                          — Trending Score: {Number(product.trending_score) || 'N/A'}
-                        </div>
-                      </div>
-                    </Link>
-                  </motion.div>
-                </StaggerChild>
-              );
-            })}
-          </StaggerWrapper>
-        )}
+        <ProductSection
+          products={products}
+          categories={categories}
+          activeTab={activeTab}
+          isLoading={isLoading}
+          hasMore={hasMore}
+          selectedCurrency={selectedCurrency}
+          rates={rates}
+          onTabChange={handleTabClick}
+          onLoadMore={() => setVisibleCount((prev) => prev + 8)}
+        />
       </div>
     </AnimatedPage>
   );

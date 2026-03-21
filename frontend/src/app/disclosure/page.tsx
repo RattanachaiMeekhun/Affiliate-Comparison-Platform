@@ -17,7 +17,7 @@ export default function DisclosurePage() {
 
         <h2 style={{ fontSize: '1.5rem', marginTop: '30px', marginBottom: '15px' }}>How We Make Money</h2>
         <p style={{ marginBottom: '20px' }}>
-          stacknodes.net is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Amazon, Newegg, Best Buy, Walmart, or other Impact.com partner brands—and complete a purchase, we may receive a small commission from the merchant at no extra cost to you.
+          stacknodes.net is an affiliate-supported platform. <strong>As an Amazon Associate I earn from qualifying purchases.</strong> When you click on a product comparison link—such as those pointing to Amazon, Newegg, Best Buy, Walmart, or other Impact.com partner brands—and complete a purchase, we may receive a small commission from the merchant at no extra cost to you.
         </p>
 
         <h2 style={{ fontSize: '1.5rem', marginTop: '30px', marginBottom: '15px' }}>Our Promise to You</h2>

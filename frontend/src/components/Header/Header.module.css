@@ -29,7 +29,6 @@
   gap: 2px;
   font-size: 18px;
   font-weight: 700;
-  color: var(--text-primary);
   text-decoration: none;
   flex-shrink: 0;
 }

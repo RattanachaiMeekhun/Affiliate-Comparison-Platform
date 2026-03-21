@@ -4,25 +4,27 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Slider, Select } from 'antd';
-import { BulbOutlined } from '@ant-design/icons';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Slider, Select, Checkbox, Button, Modal, Empty, Badge } from 'antd';
+import { BulbOutlined, SwapOutlined, CloseOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import AnimatedPage, {
   ScrollReveal,
   staggerItem,
 } from '@/components/AnimatedLayout/AnimatedLayout';
 import { fetchProducts, Product } from '@/services/api';
+import { useCurrency } from '@/context/CurrencyContext';
+import { formatPrice } from '@/services/formatters';
 import styles from './page.module.css';
-
-const brands = ['Apple', 'Dell', 'ASUS', 'Lenovo'];
-const componentTypes = ['Gaming Laptops', 'Ultrabooks', 'Creator Laptops'];
 
 export default function ComparePage() {
   const router = useRouter();
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000]);
+  const { selectedCurrency, rates } = useCurrency();
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('best-match');
+  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
@@ -34,6 +36,12 @@ export default function ComparePage() {
       try {
         const prods = await fetchProducts();
         setProducts(prods || []);
+
+        // Update price range max based on actual data
+        if (prods && prods.length > 0) {
+          const maxP = Math.max(...prods.map((p) => Number(p.price) || 0));
+          setPriceRange([0, Math.ceil(maxP / 1000) * 1000 || 100000]);
+        }
       } catch (err) {
         console.error('Error loading compare page data', err);
       } finally {
@@ -42,6 +50,25 @@ export default function ComparePage() {
     }
     loadData();
   }, []);
+
+  // ═══════ Dynamic Filter Options ═══════
+  const dynamicBrands = useMemo(() => {
+    const bSet = new Set<string>();
+    products.forEach((p) => {
+      if (p.specs?.brand) bSet.add(p.specs.brand);
+    });
+    return Array.from(bSet).sort();
+  }, [products]);
+
+  const dynamicTypes = useMemo(() => {
+    const tSet = new Set<string>();
+    products.forEach(p => {
+      if (p.specs?.type) tSet.add(p.specs.type);
+      else if (p.category_name) tSet.add(p.category_name);
+      else if (p.category_id) tSet.add('Category ' + p.category_id); // Fallback
+    });
+    return Array.from(tSet).sort();
+  }, [products]);
 
   // ═══════ Processing Logic ═══════
   const processedProducts = useMemo(() => {
@@ -61,13 +88,18 @@ export default function ComparePage() {
         selectedBrands.length === 0 ||
         (product.specs?.brand && selectedBrands.includes(product.specs.brand));
 
-      // For type, we check name or specs.category/type if available
-      const productType = product.specs?.type || product.name || '';
+      let productType = '';
+      if (product.specs?.type) {
+        productType = product.specs.type;
+      } else if (product.category_name) {
+        productType = product.category_name;
+      } else if (product.category_id) {
+        productType = 'Category ' + product.category_id;
+      }
+
       const matchesType =
         selectedTypes.length === 0 ||
-        selectedTypes.some((type) =>
-          productType.toLowerCase().includes(type.split(' ')[0].toLowerCase())
-        );
+        selectedTypes.includes(productType);
 
       return matchesPrice && matchesBrand && matchesType;
     });
@@ -97,13 +129,15 @@ export default function ComparePage() {
 
   const activeChips = useMemo(() => {
     const chips: string[] = [];
-    if (priceRange[0] > 0 || priceRange[1] < 5000) {
-      chips.push(`$${priceRange[0]} - $${priceRange[1]}`);
+    if (priceRange[0] > 0 || priceRange[1] < 100000) {
+      chips.push(
+        `${formatPrice(priceRange[0], 'THB', selectedCurrency, rates)} - ${formatPrice(priceRange[1], 'THB', selectedCurrency, rates)}`
+      );
     }
     selectedBrands.forEach((b) => chips.push(b));
     selectedTypes.forEach((t) => chips.push(t));
     return chips;
-  }, [priceRange, selectedBrands, selectedTypes]);
+  }, [priceRange, selectedBrands, selectedTypes, selectedCurrency, rates]);
 
   const toggleBrand = (brand: string) => {
     setSelectedBrands((prev) =>
@@ -120,25 +154,46 @@ export default function ComparePage() {
   };
 
   const clearAll = () => {
-    setPriceRange([0, 5000]);
+    setPriceRange([0, 100000]);
     setSelectedBrands([]);
     setSelectedTypes([]);
     setCurrentPage(1);
   };
 
   const removeChip = (chip: string) => {
-    if (chip.includes('$')) {
-      setPriceRange([0, 5000]);
-    } else if (brands.includes(chip)) {
+    if (chip.includes(selectedCurrency) || chip.includes(' - ')) {
+      setPriceRange([0, 100000]);
+    } else if (dynamicBrands.includes(chip)) {
       setSelectedBrands((prev) => prev.filter((b) => b !== chip));
-    } else if (componentTypes.includes(chip)) {
+    } else if (dynamicTypes.includes(chip)) {
       setSelectedTypes((prev) => prev.filter((t) => t !== chip));
     }
     setCurrentPage(1);
   };
 
+  const toggleProductSelection = (id: string) => {
+    setSelectedProductIds((prev) =>
+      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
+    );
+  };
+
+  const selectedProductsForComparison = useMemo(() => {
+    return products.filter((p) => selectedProductIds.includes(p.id));
+  }, [products, selectedProductIds]);
+
+  const allSpecKeys = useMemo(() => {
+    const keys = new Set<string>();
+    selectedProductsForComparison.forEach((p) => {
+      if (p.specs) {
+        Object.keys(p.specs).forEach((k) => keys.add(k));
+      }
+    });
+    return Array.from(keys);
+  }, [selectedProductsForComparison]);
+
   return (
-    <AnimatedPage>
+    <>
+      <AnimatedPage>
       <div className={styles.pageWrapper}>
         {/* ═══════ Sidebar Filters ═══════ */}
         <motion.aside
@@ -158,8 +213,8 @@ export default function ComparePage() {
             <Slider
               range
               min={0}
-              max={5000}
-              step={100}
+              max={100000}
+              step={1000}
               value={priceRange}
               onChange={(val) => setPriceRange(val as [number, number])}
               styles={{
@@ -175,36 +230,38 @@ export default function ComparePage() {
                 color: 'var(--text-muted)',
               }}
             >
-              <span>$ {priceRange[0].toLocaleString()}</span>
-              <span>$ {priceRange[1].toLocaleString()}</span>
+              <span>{formatPrice(priceRange[0], 'THB', selectedCurrency, rates)}</span>
+              <span>{formatPrice(priceRange[1], 'THB', selectedCurrency, rates)}</span>
             </div>
           </div>
 
           {/* Component Type */}
           <div className={styles.filterGroup}>
             <div className={styles.filterGroupHeader}>
-              <span className={styles.filterLabel}>Component Type</span>
+              <span className={styles.filterLabel}>Product Type</span>
             </div>
-            {componentTypes.map((type) => (
-              <div
-                key={type}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                  fontSize: 13,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={selectedTypes.includes(type)}
-                  onChange={() => toggleType(type)}
-                  style={{ accentColor: '#2563EB' }}
-                />
-                <span>{type}</span>
-              </div>
-            ))}
+            {dynamicTypes.length > 0 ? (
+              dynamicTypes.map((type) => (
+                <div
+                  key={type}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 8,
+                    fontSize: 13,
+                  }}
+                >
+                  <Checkbox
+                    checked={selectedTypes.includes(type)}
+                    onChange={() => toggleType(type)}
+                  />
+                  <span>{type}</span>
+                </div>
+              ))
+            ) : (
+              <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>No types available</span>
+            )}
           </div>
 
           {/* Brand */}
@@ -213,18 +270,24 @@ export default function ComparePage() {
               <span className={styles.filterLabel}>Brand</span>
             </div>
             <div className={styles.brandPills}>
-              {brands.map((brand) => (
-                <button
-                  key={brand}
-                  className={`${styles.brandPill} ${
-                    selectedBrands.includes(brand) ? styles.brandPillActive : ''
-                  }`}
-                  onClick={() => toggleBrand(brand)}
-                >
-                  {selectedBrands.includes(brand) && '✓ '}
-                  {brand}
-                </button>
-              ))}
+              {dynamicBrands.length > 0 ? (
+                dynamicBrands.map((brand) => (
+                  <button
+                    key={brand}
+                    className={`${styles.brandPill} ${
+                      selectedBrands.includes(brand) ? styles.brandPillActive : ''
+                    }`}
+                    onClick={() => toggleBrand(brand)}
+                  >
+                    {selectedBrands.includes(brand) && '✓ '}
+                    {brand}
+                  </button>
+                ))
+              ) : (
+                <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>
+                  No brands available
+                </span>
+              )}
             </div>
           </div>
 
@@ -284,7 +347,35 @@ export default function ComparePage() {
               <ScrollReveal>
                 <div className={styles.productTable}>
                   <div className={styles.tableHeader}>
-                    <span>Product</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Checkbox
+                        checked={
+                          paginatedProducts.length > 0 &&
+                          paginatedProducts.every((p) => selectedProductIds.includes(p.id))
+                        }
+                        indeterminate={
+                          paginatedProducts.some((p) => selectedProductIds.includes(p.id)) &&
+                          !paginatedProducts.every((p) => selectedProductIds.includes(p.id))
+                        }
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const newIds = [
+                              ...new Set([
+                                ...selectedProductIds,
+                                ...paginatedProducts.map((p) => p.id),
+                              ]),
+                            ];
+                            setSelectedProductIds(newIds);
+                          } else {
+                            const remainingIds = selectedProductIds.filter(
+                              (id) => !paginatedProducts.some((p) => p.id === id)
+                            );
+                            setSelectedProductIds(remainingIds);
+                          }
+                        }}
+                      />
+                      Product
+                    </span>
                     <span>Key Specs</span>
                     <span>Trend</span>
                     <span style={{ textAlign: 'right' }}>Marketplace Price</span>
@@ -311,11 +402,17 @@ export default function ComparePage() {
                         initial="hidden"
                         animate="visible"
                         transition={{ delay: index * 0.08 }}
-                        className={styles.tableRow}
+                        className={`${styles.tableRow} ${selectedProductIds.includes(product.id) ? styles.tableRowSelected : ''}`}
                         onClick={() => router.push(`/products/${product.slug}`)}
                       >
                         {/* Product */}
                         <div className={styles.productCell}>
+                          <div onClick={(e) => e.stopPropagation()} style={{ marginRight: 8 }}>
+                            <Checkbox
+                              checked={selectedProductIds.includes(product.id)}
+                              onChange={() => toggleProductSelection(product.id)}
+                            />
+                          </div>
                           <div className={styles.productThumb}>
                             <img
                               src={imgUrl || '/no-image.png'}
@@ -330,6 +427,9 @@ export default function ComparePage() {
                             <h3>{product.name}</h3>
                             <div className={styles.productMetaSub}>
                               <span className={styles.metaTag}>{specs.brand || 'Unknown'}</span>
+                              {product.category_name && (
+                                <span className={styles.categoryTag}>{product.category_name}</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -356,26 +456,16 @@ export default function ComparePage() {
                         <div className={styles.priceCell}>
                           {bestPrice > 0 ? (
                             <span className={styles.priceCellValue}>
-                              ${bestPrice.toLocaleString()}
+                              {formatPrice(
+                                bestPrice,
+                                product.currency || 'THB',
+                                selectedCurrency,
+                                rates
+                              )}
                             </span>
                           ) : (
                             <span className={styles.priceCellValue}>View Prices</span>
                           )}
-                          {/* <div className={styles.priceActions}>
-                            <span className={styles.detailsBtn}>Details</span>
-                            {product.affiliate_products.length > 0 && (
-                              <a
-                                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/go/${product.affiliate_products[0].id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={styles.marketplaceBtn}
-                                style={{ background: '#2563EB', textDecoration: 'none' }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {product.affiliate_products[0].source_name} →
-                              </a>
-                            )}
-                          </div> */}
                         </div>
                       </motion.div>
                     );
@@ -416,5 +506,132 @@ export default function ComparePage() {
         </div>
       </div>
     </AnimatedPage>
+
+    <AnimatePresence>
+        {selectedProductIds.length > 0 && (
+          <motion.div
+            className={styles.compareBar}
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+          >
+            <div className={styles.compareBarContent}>
+              <div className={styles.compareInfo}>
+                <SwapOutlined style={{ fontSize: 20, color: 'var(--primary)' }} />
+                <span>
+                  <strong>{selectedProductIds.length}</strong> products selected for comparison
+                </span>
+              </div>
+              <div className={styles.compareActions}>
+                <Button onClick={() => setSelectedProductIds([])} type="text">
+                  Clear
+                </Button>
+                <Button
+                  type="primary"
+                  size="large"
+                  icon={<SwapOutlined />}
+                  onClick={() => setIsCompareModalOpen(true)}
+                  disabled={selectedProductIds.length < 2}
+                >
+                  {selectedProductIds.length < 2 ? 'Select 2+ to Compare' : 'Compare Now'}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <Modal
+        title={null}
+        open={isCompareModalOpen}
+        onCancel={() => setIsCompareModalOpen(false)}
+        footer={null}
+        width={1000}
+        centered
+        className={styles.compareModal}
+        closeIcon={<CloseOutlined style={{ color: 'white' }} />}
+      >
+        <div className={styles.compareModalHeader}>
+          <h2>Product Comparison</h2>
+          <p>Side-by-side technical specification analysis</p>
+        </div>
+
+        <div className={styles.compareScrollContainer}>
+          <table className={styles.compareTable}>
+            <thead>
+              <tr>
+                <th className={styles.specHeaderCell}>Specifications</th>
+                {selectedProductsForComparison.map((p) => (
+                  <th key={p.id} className={styles.productHeaderCell}>
+                    <div className={styles.compProductThumb}>
+                      <img src={p.image_url || '/no-image.png'} alt={p.name} />
+                    </div>
+                    <div className={styles.compProductName}>{p.name}</div>
+                    {p.category_name && (
+                      <div style={{ fontSize: '11px', color: 'var(--primary)', marginBottom: 8 }}>
+                        {p.category_name}
+                      </div>
+                    )}
+                    <div className={styles.compProductPrice}>
+                      {formatPrice(p.price, p.currency || 'THB', selectedCurrency, rates)}
+                    </div>
+                    <Button
+                      danger
+                      size="small"
+                      type="text"
+                      icon={<CloseOutlined />}
+                      onClick={() => toggleProductSelection(p.id)}
+                    >
+                      Remove
+                    </Button>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className={styles.specLabelCell}>Trending Score</td>
+                {selectedProductsForComparison.map((p) => (
+                  <td key={p.id} className={styles.specValueCell}>
+                    <Badge count={p.trending_score} color="var(--primary)" />
+                  </td>
+                ))}
+              </tr>
+              {allSpecKeys.map((key) => (
+                <tr key={key}>
+                  <td className={styles.specLabelCell} style={{ textTransform: 'capitalize' }}>
+                    {key}
+                  </td>
+                  {selectedProductsForComparison.map((p) => (
+                    <td key={p.id} className={styles.specValueCell}>
+                      {p.specs?.[key] ? (
+                        <div className={styles.specValueBox}>
+                          <CheckCircleOutlined style={{ color: '#10B981', marginRight: 4 }} />
+                          {String(p.specs[key])}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#9CA3AF' }}>—</span>
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {selectedProductIds.length === 0 && (
+            <div style={{ padding: 40, textAlign: 'center' }}>
+              <Empty description="No products selected for comparison" />
+            </div>
+          )}
+        </div>
+
+        <div className={styles.compareModalFooter}>
+          <Button size="large" onClick={() => setIsCompareModalOpen(false)}>
+            Close Comparison
+          </Button>
+        </div>
+      </Modal>
+    </>
   );
 }

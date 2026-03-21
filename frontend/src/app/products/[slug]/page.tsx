@@ -275,6 +275,19 @@ export default function ProductDetailPage() {
                   No active listings found for this product.
                 </div>
               )}
+              <div 
+                style={{ 
+                  marginTop: 16, 
+                  paddingTop: 12, 
+                  borderTop: '1px solid var(--border)', 
+                  fontSize: '11px', 
+                  color: 'var(--text-muted)',
+                  fontStyle: 'italic',
+                  lineHeight: '1.4'
+                }}
+              >
+                As an Amazon Associate I earn from qualifying purchases.
+              </div>
             </div>
 
             {/* AI Verdict */}

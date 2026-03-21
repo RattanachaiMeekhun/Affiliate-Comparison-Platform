@@ -7,13 +7,34 @@ from typing import List
 
 
 def get_product(db: Session, product_id: uuid.UUID):
-    return db.query(models.Product).options(joinedload(models.Product.affiliate_products)).filter(models.Product.id == product_id).order_by(models.Product.trending_score.desc()).first()
+    return (
+        db.query(models.Product)
+        .options(
+            joinedload(models.Product.affiliate_products),
+            joinedload(models.Product.category),
+        )
+        .filter(models.Product.id == product_id)
+        .order_by(models.Product.trending_score.desc())
+        .first()
+    )
+
+
+def get_product_by_slug(db: Session, slug: str):
+    return (
+        db.query(models.Product)
+        .options(
+            joinedload(models.Product.affiliate_products),
+            joinedload(models.Product.category),
+        )
+        .filter(models.Product.slug == slug)
+        .first()
+    )
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 100):
     return (
         db.query(models.Product)
-        .options(joinedload(models.Product.affiliate_products))
+        .options(joinedload(models.Product.category))
         .order_by(models.Product.trending_score.desc())
         .offset(skip)
         .limit(limit)
@@ -127,7 +148,7 @@ def get_products_by_category(
         uuid.UUID(category)
         return (
             db.query(models.Product)
-            .options(joinedload(models.Product.affiliate_products))
+            .options(joinedload(models.Product.category))
             .filter(models.Product.category_id == category)
             .order_by(models.Product.trending_score.desc())
             .offset(skip)
@@ -138,9 +159,13 @@ def get_products_by_category(
         # If not a UUID, assume it's a slug
         return (
             db.query(models.Product)
-            .options(joinedload(models.Product.affiliate_products))
+            .options(
+                joinedload(models.Product.affiliate_products),
+                joinedload(models.Product.category),
+            )
             .join(models.Category)
             .filter(models.Category.slug == category)
+            .order_by(models.Product.trending_score.desc())
             .offset(skip)
             .limit(limit)
             .all()
@@ -157,7 +182,13 @@ def get_category(db: Session, category_id: uuid.UUID):
 
 
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).order_by(models.Category.sort_order.asc()).offset(skip).limit(limit).all()
+    return (
+        db.query(models.Category)
+        .order_by(models.Category.sort_order.asc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_category_by_slug(db: Session, slug: str):

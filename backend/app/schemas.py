@@ -14,6 +14,7 @@ class CategoryBase(BaseModel):
     meta_description: Optional[str] = None
     icon_url: Optional[str] = None
     sort_order: int = 0
+    trending_score: float = 0.0
 
 
 class CategoryCreate(CategoryBase):
@@ -60,7 +61,7 @@ class ProductBase(BaseModel):
     best_value: bool = False
     category_id: Optional[UUID4] = None
     specs: Optional[dict] = None
-    trending_score: Decimal = Decimal("0.0")
+    trending_score: float = 0.0
     price: Optional[Decimal] = None
     currency: str = "THB"
     image_url: Optional[str] = None
@@ -72,8 +73,9 @@ class ProductCreate(ProductBase):
 
 class Product(ProductBase):
     id: UUID4
+    category_name: Optional[str] = None
     specs: Optional[dict] = None
-    trending_score: Decimal
+    trending_score: float = 0.0
     affiliate_products: List[AffiliateProduct] = []
 
     class Config:

@@ -65,6 +65,7 @@ class VectorService:
         min_price: float = 0,
         max_price: float = 999_999_999,
         limit: int = 20,
+        category_name: str = "",
     ) -> list[dict]:
         """Embed query and find similar products via Supabase match_products RPC."""
         if not self.supabase:

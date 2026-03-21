@@ -4,7 +4,7 @@ Transparency is core to the stacknodes.net experience. We believe in providing d
 
 ### How We Make Money
 
-stacknodes.net is an affiliate-supported platform. When you click on a product comparison link—such as those pointing to Shopee, Lazada, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant.
+stacknodes.net is an affiliate-supported platform. **As an Amazon Associate I earn from qualifying purchases.** When you click on a product comparison link—such as those pointing to Amazon, Shopee, Lazada, or other marketplaces—and complete a purchase, we may receive a small commission from the merchant at no extra cost to you.
 
 ### Our Promise to You
 

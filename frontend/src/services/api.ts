@@ -37,6 +37,7 @@ export interface Product {
   ai_insight: string | null;
   best_value: boolean;
   category_id: string | null;
+  category_name?: string | null;
   specs: Record<string, any> | null;
   trending_score: string | number;
   price: string | number | null;
@@ -88,17 +89,10 @@ export async function fetchProductById(id: string): Promise<Product | null> {
 
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   try {
-    // Current backend doesn't have a direct /products/slug/{slug} endpoint,
-    // but read_products supports a category filter. 
-    // We should ideally add a specific endpoint to the backend, 
-    // but for now we can use /products/?slug=... if the backend supports it,
-    // or fetch products and find it (which is what we want to avoid).
-    
-    // Check if backend crud.py has get_product_by_slug (it doesn't seem to have a router for it yet)
-    // Actually, I should add a router for it in the backend first.
-    const res = await api.get<Product[]>(`/products/?limit=1&slug=${slug}`);
-    return res.data.length > 0 ? res.data[0] : null;
+    const res = await api.get<Product>(`/products/slug/${slug}`);
+    return res.data;
   } catch (error: any) {
+    if (error.response?.status === 404) return null;
     console.error(`Failed to fetch product by slug ${slug}`, error);
     return null;
   }

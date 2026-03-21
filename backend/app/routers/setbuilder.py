@@ -15,10 +15,12 @@ class SetBuilderRequest(BaseModel):
 
 
 class ComponentResponse(BaseModel):
+    id: str | None = None
     label: str
     name: str
     price_usd: float
     icon_key: str
+    from_catalogue: bool = False
 
 
 class SetBuilderResponse(BaseModel):
@@ -63,10 +65,12 @@ async def recommend_build(req: SetBuilderRequest):
     for c in recommendation.get("components", []):
         components.append(
             ComponentResponse(
+                id=c.get("id"),
                 label=c.get("label", "Unknown"),
                 name=c.get("name", "Unknown"),
                 price_usd=float(c.get("price_usd", 0)),
                 icon_key=c.get("icon_key", "processor"),
+                from_catalogue=c.get("from_catalogue", False),
             )
         )
 

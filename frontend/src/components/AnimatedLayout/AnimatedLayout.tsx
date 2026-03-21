@@ -106,14 +106,16 @@ interface StaggerWrapperProps {
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
+  animate?: string;
 }
 
-export function StaggerWrapper({ children, className, style }: StaggerWrapperProps) {
+export function StaggerWrapper({ children, className, style, animate }: StaggerWrapperProps) {
   return (
     <motion.div
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: '-30px' }}
+      whileInView={animate ? undefined : 'visible'}
+      animate={animate}
+      viewport={{ margin: '-30px' }}
       variants={staggerContainer}
       className={className}
       style={style}

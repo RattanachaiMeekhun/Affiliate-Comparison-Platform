@@ -43,6 +43,14 @@ def read_product(product_id: str, db: Session = Depends(database.get_db)):
     return db_product
 
 
+@router.get("/slug/{slug}", response_model=schemas.Product)
+def read_product_by_slug(slug: str, db: Session = Depends(database.get_db)):
+    db_product = crud.get_product_by_slug(db, slug=slug)
+    if db_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return db_product
+
+
 @router.post("/sync-images")
 async def sync_images(
     re_search: bool = False, limit: int = 50, db: Session = Depends(database.get_db)

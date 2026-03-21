@@ -51,10 +51,13 @@ class Product(Base):
     currency = Column(String, default="THB")
     image_url = Column(String)  # Main product image
     embedding = Column(Vector(1536), nullable=True)  # pgvector semantic search
-
     category = relationship("Category", back_populates="products")
     affiliate_products = relationship("AffiliateProduct", back_populates="product")
     price_history = relationship("PriceHistory", back_populates="product", cascade="all, delete-orphan")
+
+    @property
+    def category_name(self):
+        return self.category.name if self.category else None
 
 
 class AffiliateProduct(Base):

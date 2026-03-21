@@ -16,9 +16,9 @@ const methodologySections = [
   {
     icon: <DatabaseOutlined style={{ fontSize: 28, color: '#2563EB' }} />,
     title: 'Data Collection',
-    description: 'We aggregate product data from regional marketplaces (Lazada, Shopee) and global aggregators like Google Shopping. Our system captures the latest pricing, availability, and promotional offers across multiple currencies.',
+    description: 'We aggregate product data from global platforms such as Amazon and various brand partners via Impact.com. Our system captures the latest pricing, availability, and promotional offers across multiple currencies.',
     details: [
-      'Real-time price tracking via Serper and eBay APIs',
+      'Real-time price tracking via Amazon Product Advertising API and Impact.com APIs',
       'Multi-currency support with live exchange rates',
       'Automated detection of regional variants and SKUs',
       'Validation against manufacturer suggested retail prices (MSRP)',
@@ -38,12 +38,12 @@ const methodologySections = [
   {
     icon: <ExperimentOutlined style={{ fontSize: 28, color: '#7C3AED' }} />,
     title: 'AI-Powered Matching',
-    description: 'Using vector embeddings and Gemini 2.5 Pro, we semantically identify products across marketplaces even when listings use different names, identifying the exact same model with 98.5% accuracy.',
+    description: 'Using vector embeddings and Google Gemini Pro, we semantically identify products across marketplaces even when listings use different names, ensuring high-precision model matching across multiple sources.',
     details: [
       'Semantic comparison using PGVector embeddings',
       'High-precision SKU and variant identification',
       'AI insights highlighting technical advantages (e.g., Cooling, Warranty)',
-      'Continuous model training on Thai marketplace data patterns',
+      'Continuous model optimization for global hardware data patterns',
     ],
   },
   {
@@ -52,18 +52,18 @@ const methodologySections = [
     description: 'Products are evaluated on a dynamic score that combines benchmark performance, price-to-value ratio, build quality, and real-time community sentiment analysis.',
     details: [
       'Weighted scoring: Performance (40%), Value (30%), Reliability (20%), Reviews (10%)',
-      'Benchmark data integration from independent labs',
+      'Market-leading technical specification benchmarks',
       'Sentiment analysis of localized user feedback',
-      'Monthly recalibration based on hardware release cycles',
+      'Regular data updates based on hardware release cycles',
     ],
   },
   {
     icon: <EyeOutlined style={{ fontSize: 28, color: '#64748B' }} />,
     title: 'Transparency',
-    description: 'We maintain full editorial independence. When you purchase through our links, we may earn a commission, but this never influences our rankings or AI recommendations.',
+    description: 'We maintain full editorial independence. As an affiliate-supported platform, we may earn a commission when you purchase through our links, but this never influences our rankings or AI recommendations.',
     details: [
       'Rankings are algorithm-driven, not pay-to-play',
-      'Affiliate relationships disclosed on every product page',
+      'Disclosure: We are a participant in the Amazon Services LLC Associates Program and various affiliate programs via Impact.com.',
       'Regular audits of recommendation logic',
       'Open methodology for score calculations',
     ],
