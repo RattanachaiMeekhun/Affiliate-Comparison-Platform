@@ -9,6 +9,8 @@ import {
   TeamOutlined,
   EyeOutlined,
   BulbOutlined,
+  UserOutlined,
+  RobotOutlined,
 } from '@ant-design/icons';
 import AnimatedPage, { ScrollReveal, StaggerWrapper, StaggerChild } from '@/components/AnimatedLayout/AnimatedLayout';
 
@@ -72,19 +74,19 @@ const methodologySections = [
 
 const teamValues = [
   {
-    icon: <SafetyCertificateOutlined style={{ fontSize: 24, color: '#2563EB' }} />,
-    title: 'Independence',
-    description: 'Our editorial team operates independently from our business partnerships.',
+    icon: <UserOutlined style={{ fontSize: 24, color: '#2563EB' }} />,
+    title: 'Solo Foundation',
+    description: 'Built and maintained by a single developer with a passion for hardware, ensuring every recommendation is personal and honest.',
   },
   {
-    icon: <TeamOutlined style={{ fontSize: 24, color: '#7C3AED' }} />,
-    title: 'Expertise',
-    description: 'Our team includes former hardware engineers, data scientists, and tech journalists.',
+    icon: <RobotOutlined style={{ fontSize: 24, color: '#7C3AED' }} />,
+    title: 'AI Augmented',
+    description: 'Leveraging Gemini AI to scale data processing, providing insights and comparisons that would typically require a large team.',
   },
   {
-    icon: <ExperimentOutlined style={{ fontSize: 24, color: '#10B981' }} />,
-    title: 'Rigor',
-    description: 'Every recommendation is backed by data, benchmarks, and real-world testing.',
+    icon: <SafetyCertificateOutlined style={{ fontSize: 24, color: '#10B981' }} />,
+    title: 'Authentic Data',
+    description: 'Our AI presents products as they are, without corporate bias or inflated marketing buzzwords—just verifiable technical truth.',
   },
 ];
 
