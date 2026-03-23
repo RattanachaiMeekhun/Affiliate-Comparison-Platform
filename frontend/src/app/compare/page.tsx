@@ -13,18 +13,18 @@ import AnimatedPage, {
 } from '@/components/AnimatedLayout/AnimatedLayout';
 import { fetchProducts, Product } from '@/services/api';
 import { useCurrency } from '@/context/CurrencyContext';
+import { useCompare } from '@/context/CompareContext';
 import { formatPrice } from '@/services/formatters';
 import styles from './page.module.css';
 
 export default function ComparePage() {
   const router = useRouter();
   const { selectedCurrency, rates } = useCurrency();
+  const { compareItems, addToCompare, removeFromCompare, clearCompare, isCompareModalOpen, setIsCompareModalOpen } = useCompare();
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 100000]);
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>('best-match');
-  const [selectedProductIds, setSelectedProductIds] = useState<string[]>([]);
-  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 10;
 
@@ -171,15 +171,33 @@ export default function ComparePage() {
     setCurrentPage(1);
   };
 
-  const toggleProductSelection = (id: string) => {
-    setSelectedProductIds((prev) =>
-      prev.includes(id) ? prev.filter((pId) => pId !== id) : [...prev, id]
-    );
+  const toggleProductSelection = (product: Product) => {
+    const isCompared = compareItems.some((item) => item.id === product.id);
+    if (isCompared) {
+      removeFromCompare(product.id);
+    } else {
+      const bestPrice =
+        product.affiliate_products.length > 0
+          ? Math.min(
+              ...product.affiliate_products
+                .map((p) => Number(p.price) || 0)
+                .filter((p) => p > 0)
+            )
+          : Number(product.price) || 0;
+
+      addToCompare({
+        id: product.id,
+        name: product.name,
+        imageUrl: product.image_url || '/placeholder.png',
+        category: product.category_name || 'Unknown',
+        price: bestPrice,
+      });
+    }
   };
 
   const selectedProductsForComparison = useMemo(() => {
-    return products.filter((p) => selectedProductIds.includes(p.id));
-  }, [products, selectedProductIds]);
+    return products.filter((p) => compareItems.some((item) => item.id === p.id));
+  }, [products, compareItems]);
 
   const allSpecKeys = useMemo(() => {
     const keys = new Set<string>();
@@ -351,26 +369,25 @@ export default function ComparePage() {
                       <Checkbox
                         checked={
                           paginatedProducts.length > 0 &&
-                          paginatedProducts.every((p) => selectedProductIds.includes(p.id))
+                          paginatedProducts.every((p) => compareItems.some((item) => item.id === p.id))
                         }
                         indeterminate={
-                          paginatedProducts.some((p) => selectedProductIds.includes(p.id)) &&
-                          !paginatedProducts.every((p) => selectedProductIds.includes(p.id))
+                          paginatedProducts.some((p) => compareItems.some((item) => item.id === p.id)) &&
+                          !paginatedProducts.every((p) => compareItems.some((item) => item.id === p.id))
                         }
                         onChange={(e) => {
                           if (e.target.checked) {
-                            const newIds = [
-                              ...new Set([
-                                ...selectedProductIds,
-                                ...paginatedProducts.map((p) => p.id),
-                              ]),
-                            ];
-                            setSelectedProductIds(newIds);
+                            paginatedProducts.forEach((p) => {
+                              if (!compareItems.some((item) => item.id === p.id)) {
+                                toggleProductSelection(p);
+                              }
+                            });
                           } else {
-                            const remainingIds = selectedProductIds.filter(
-                              (id) => !paginatedProducts.some((p) => p.id === id)
-                            );
-                            setSelectedProductIds(remainingIds);
+                            paginatedProducts.forEach((p) => {
+                              if (compareItems.some((item) => item.id === p.id)) {
+                                removeFromCompare(p.id);
+                              }
+                            });
                           }
                         }}
                       />
@@ -402,15 +419,15 @@ export default function ComparePage() {
                         initial="hidden"
                         animate="visible"
                         transition={{ delay: index * 0.08 }}
-                        className={`${styles.tableRow} ${selectedProductIds.includes(product.id) ? styles.tableRowSelected : ''}`}
+                        className={`${styles.tableRow} ${compareItems.some((item) => item.id === product.id) ? styles.tableRowSelected : ''}`}
                         onClick={() => router.push(`/products/${product.slug}`)}
                       >
                         {/* Product */}
                         <div className={styles.productCell}>
                           <div onClick={(e) => e.stopPropagation()} style={{ marginRight: 8 }}>
                             <Checkbox
-                              checked={selectedProductIds.includes(product.id)}
-                              onChange={() => toggleProductSelection(product.id)}
+                              checked={compareItems.some((item) => item.id === product.id)}
+                              onChange={() => toggleProductSelection(product)}
                             />
                           </div>
                           <div className={styles.productThumb}>
@@ -507,39 +524,7 @@ export default function ComparePage() {
       </div>
     </AnimatedPage>
 
-    <AnimatePresence>
-        {selectedProductIds.length > 0 && (
-          <motion.div
-            className={styles.compareBar}
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            exit={{ y: 100 }}
-          >
-            <div className={styles.compareBarContent}>
-              <div className={styles.compareInfo}>
-                <SwapOutlined style={{ fontSize: 20, color: 'var(--primary)' }} />
-                <span>
-                  <strong>{selectedProductIds.length}</strong> products selected for comparison
-                </span>
-              </div>
-              <div className={styles.compareActions}>
-                <Button onClick={() => setSelectedProductIds([])} type="text">
-                  Clear
-                </Button>
-                <Button
-                  type="primary"
-                  size="large"
-                  icon={<SwapOutlined />}
-                  onClick={() => setIsCompareModalOpen(true)}
-                  disabled={selectedProductIds.length < 2}
-                >
-                  {selectedProductIds.length < 2 ? 'Select 2+ to Compare' : 'Compare Now'}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
 
       <Modal
         title={null}
@@ -580,7 +565,7 @@ export default function ComparePage() {
                       size="small"
                       type="text"
                       icon={<CloseOutlined />}
-                      onClick={() => toggleProductSelection(p.id)}
+                      onClick={() => toggleProductSelection(p)}
                     >
                       Remove
                     </Button>
@@ -619,7 +604,7 @@ export default function ComparePage() {
             </tbody>
           </table>
 
-          {selectedProductIds.length === 0 && (
+          {compareItems.length === 0 && (
             <div style={{ padding: 40, textAlign: 'center' }}>
               <Empty description="No products selected for comparison" />
             </div>

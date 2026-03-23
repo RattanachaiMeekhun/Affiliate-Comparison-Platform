@@ -2,8 +2,10 @@ import type { Metadata } from 'next';
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import StoreProvider from '@/store/provider';
 import { CurrencyProvider } from '@/context/CurrencyContext';
+import { CompareProvider } from '@/context/CompareContext';
 import Header from '@/components/Header/Header';
 import Footer from '@/components/Footer/Footer';
+import CompareStickyBar from '@/components/Compare/CompareStickyBar';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -23,11 +25,14 @@ export default function RootLayout({
         <AntdRegistry>
           <CurrencyProvider>
             <StoreProvider>
-              <Header />
-              <main style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
-                {children}
-              </main>
-              <Footer />
+              <CompareProvider>
+                <Header />
+                <main style={{ minHeight: 'calc(100vh - var(--header-height))' }}>
+                  {children}
+                </main>
+                <Footer />
+                <CompareStickyBar />
+              </CompareProvider>
             </StoreProvider>
           </CurrencyProvider>
         </AntdRegistry>

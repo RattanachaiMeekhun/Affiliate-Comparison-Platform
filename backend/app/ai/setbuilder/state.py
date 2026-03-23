@@ -6,9 +6,10 @@ class SetBuilderState(TypedDict):
     use_case: str
     budget: str
     ecosystem: str
-    storage: str
-    memory: str
+    storage: Optional[str]
+    memory: Optional[str]
     currency: str
+    custom_requirements: Optional[str]
 
     # ── Intermediate ──
     messages: List[str]

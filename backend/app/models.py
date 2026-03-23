@@ -24,6 +24,7 @@ class Category(Base):
     name = Column(String, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)
     description = Column(Text)
+    seo_content = Column(Text)
     is_active = Column(Boolean, default=True)
     meta_title = Column(String(160))
     meta_description = Column(String(255))
@@ -100,6 +101,22 @@ class User(Base):
     is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    saved_builds = relationship("SavedBuild", back_populates="user", cascade="all, delete-orphan")
+
+
+class SavedBuild(Base):
+    __tablename__ = "saved_builds"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), index=True, nullable=False)
+    name = Column(String, nullable=False)
+    items = Column(JSON, nullable=False)  # Array of product data
+    total_price = Column(Numeric(10, 2), default=0.0)
+    currency = Column(String, default="THB")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship("User", back_populates="saved_builds")
 
 
 class CurrencyRate(Base):

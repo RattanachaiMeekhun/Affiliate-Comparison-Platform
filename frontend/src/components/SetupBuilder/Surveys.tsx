@@ -1,19 +1,20 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Progress, Tag } from 'antd';
-import { 
-  ArrowLeftOutlined, 
-  ArrowRightOutlined 
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, ArrowRightOutlined, BulbOutlined } from '@ant-design/icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { Form } from 'antd';
 import { RootState } from '@/store';
-import { setSelection, setStep } from '@/store/slices/builderSlice';
+import { setSelection, setStep, setCustomRequirements } from '@/store/slices/builderSlice';
 import { steps, budgetLabels } from './builderData';
 import { useCurrency } from '@/context/CurrencyContext';
 import SurveysCheckbox from './SurveysCheckbox';
 
-const Surveys = () => {
+type Props = {
+  onSurveyComplete: () => void;
+};
+
+const Surveys = ({ onSurveyComplete }: Props) => {
   const dispatch = useDispatch();
   const { currentStep, selections } = useSelector((state: RootState) => state.builder);
   const { selectedCurrency: currency } = useCurrency();
@@ -31,6 +32,8 @@ const Surveys = () => {
     if (currentStep < steps.length - 1) {
       dispatch(setStep(currentStep + 1));
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      onSurveyComplete();
     }
   };
 
@@ -48,49 +51,44 @@ const Surveys = () => {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       className="survey-container"
-      style={{ maxWidth: 800, margin: '0 auto' }}
     >
-      <div style={{ marginBottom: 64, textAlign: 'center' }}>
+      <div style={{ marginBottom: 48 }}>
         <h1
           style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 48,
+            fontSize: 40,
             fontWeight: 800,
-            marginBottom: 16,
-            background: 'linear-gradient(135deg, var(--text-primary) 0%, var(--primary) 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+            marginBottom: 12,
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.02em',
           }}
         >
-          AI Build Assistant
+          AI Setup Builder
         </h1>
-        <p
-          style={{
-            fontSize: 18,
-            color: 'var(--text-muted)',
-            marginBottom: 40,
-            maxWidth: 640,
-            margin: '0 auto',
-          }}
-        >
+        <p style={{ fontSize: 16, color: 'var(--text-muted)', marginBottom: 32 }}>
           {step.description}
         </p>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <Progress
-            percent={progressPercent}
-            strokeColor="var(--primary)"
-            railColor="var(--border)"
-            showInfo={false}
-            status="active"
-            style={{ maxWidth: 300 }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
           <div
             style={{
-              fontSize: 13,
+              flexGrow: 1,
+              height: 6,
+              background: 'var(--border)',
+              borderRadius: 3,
+              overflow: 'hidden',
+            }}
+          >
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${progressPercent}%` }}
+              style={{ height: '100%', background: 'var(--primary)' }}
+            />
+          </div>
+          <div
+            style={{
+              fontSize: 12,
               fontWeight: 700,
               color: 'var(--primary)',
-              letterSpacing: 1,
               textTransform: 'uppercase',
             }}
           >
@@ -99,61 +97,41 @@ const Surveys = () => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 64 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
         {step.sections.map((section, sIdx) => (
           <div key={section.id}>
-            <Form.Item 
-              name={section.id} 
+            <Form.Item
+              name={section.id}
               rules={[{ required: true, message: `Please select ${section.label}` }]}
               initialValue={selections[section.id]}
+              style={{ marginBottom: 0 }}
             >
               <div>
-                <motion.h3
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * sIdx }}
+                <h3
                   style={{
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: 700,
-                    marginBottom: 24,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
+                    marginBottom: 20,
+                    color: 'var(--text-primary)',
                   }}
                 >
-                  <Tag
-                    color="blue"
-                    style={{
-                      borderRadius: '50%',
-                      width: 28,
-                      height: 28,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: 0,
-                    }}
-                  >
-                    {sIdx + 1}
-                  </Tag>
                   {section.label}
-                </motion.h3>
+                </h3>
                 <div
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-                    gap: 16,
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+                    gap: 12,
                   }}
                 >
                   {section.options.map((opt) => {
                     let displayLabel = opt.label;
                     if (section.id === 'budget') {
                       const mappedLabel = budgetLabels[currency]?.[opt.id];
-                      if (mappedLabel) {
-                        displayLabel = mappedLabel;
-                      }
+                      if (mappedLabel) displayLabel = mappedLabel;
                     }
                     const isSelected = selections[section.id] === displayLabel;
-                    
+
                     return (
                       <SurveysCheckbox
                         key={opt.id}
@@ -171,26 +149,86 @@ const Surveys = () => {
         ))}
       </div>
 
+      {/* Additional Requirements textarea — shown on last survey step */}
+      {currentStep === steps.length - 2 && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            marginTop: 40,
+            padding: 24,
+            borderRadius: 'var(--radius-xl)',
+            border: '1px dashed var(--primary-light)',
+            background: 'var(--primary-bg)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <BulbOutlined style={{ color: 'var(--primary)', fontSize: 18 }} />
+            <h3
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                margin: 0,
+              }}
+            >
+              Additional Requirements
+              <span
+                style={{
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: 'var(--text-muted)',
+                  marginLeft: 8,
+                }}
+              >
+                (Optional)
+              </span>
+            </h3>
+          </div>
+          <textarea
+            onChange={(e) => dispatch(setCustomRequirements(e.target.value))}
+            placeholder="e.g. I need Wi-Fi 7 motherboard, prefer white components, want to do live streaming, need at least 2TB storage, prefer quiet fans..."
+            rows={3}
+            style={{
+              width: '100%',
+              padding: '14px 16px',
+              borderRadius: 'var(--radius-md)',
+              border: '1px solid var(--border)',
+              background: 'white',
+              fontSize: 14,
+              fontFamily: 'inherit',
+              lineHeight: 1.6,
+              resize: 'vertical',
+              color: 'var(--text-primary)',
+              outline: 'none',
+              transition: 'border-color 0.2s',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = 'var(--primary)')}
+            onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
+          />
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 8, marginBottom: 0 }}>
+            Tell our AI about any specific needs — it will factor these into your personalized build.
+          </p>
+        </motion.div>
+      )}
+
       <div
         style={{
-          marginTop: 80,
+          marginTop: 64,
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          background: 'white',
-          padding: '24px 32px',
-          borderRadius: 'var(--radius-lg)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 -10px 40px rgba(0,0,0,0.02)',
+          paddingTop: 32,
+          borderTop: '1px solid var(--border)',
         }}
       >
         <div style={{ display: 'flex', gap: 12 }}>
-          {currentStep > 0 && (
-            <motion.button
+          {currentStep > 0 ? (
+            <button
               onClick={handleBack}
-              whileHover={{ x: -2 }}
               style={{
-                padding: '12px 24px',
+                padding: '10px 20px',
                 borderRadius: 'var(--radius-md)',
                 border: '1px solid var(--border)',
                 background: 'white',
@@ -202,7 +240,9 @@ const Surveys = () => {
               }}
             >
               <ArrowLeftOutlined /> Back
-            </motion.button>
+            </button>
+          ) : (
+            <div />
           )}
         </div>
 
@@ -211,10 +251,10 @@ const Surveys = () => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           style={{
-            padding: '14px 40px',
+            padding: '12px 32px',
             borderRadius: 'var(--radius-md)',
             border: 'none',
-            background: 'var(--primary)',
+            background: 'var(--text-primary)',
             color: 'white',
             fontWeight: 700,
             fontSize: 15,
@@ -222,10 +262,9 @@ const Surveys = () => {
             display: 'flex',
             alignItems: 'center',
             gap: 10,
-            boxShadow: '0 10px 20px rgba(37, 99, 235, 0.2)',
           }}
         >
-          Continue <ArrowRightOutlined />
+          {currentStep === steps.length - 1 ? 'View Full Build' : 'Continue'} <ArrowRightOutlined />
         </motion.button>
       </div>
     </motion.div>

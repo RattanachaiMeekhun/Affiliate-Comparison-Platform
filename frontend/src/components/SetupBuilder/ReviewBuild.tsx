@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Row, Col, Tag, Divider, Spin, Alert } from 'antd';
+import { Row, Col, Tag, Divider, Spin, Alert, Button } from 'antd';
 import {
   RocketOutlined,
   RedoOutlined,
@@ -17,49 +17,77 @@ import { resetBuilder } from '@/store/slices/builderSlice';
 import { formatPrice } from '@/services/formatters';
 import { useCurrency } from '@/context/CurrencyContext';
 import { getRecommendations } from './builderData';
-import { SetBuilderRecommendation } from '@/services/setbuilderApi';
+import { SetBuilderRecommendation, SetBuilderResponse } from '@/services/setbuilderApi';
+import { saveBuild, createGuestUser } from '@/services/api';
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   processor: <ThunderboltOutlined />,
   gpu: <RocketOutlined />,
+  'graphic-card': <RocketOutlined />,
   memory: <SettingOutlined />,
   storage: <HddOutlined />,
   motherboard: <AppstoreOutlined />,
+  mainboard: <AppstoreOutlined />,
   psu: <ApiOutlined />,
 };
 
 interface ReviewBuildProps {
-  aiRecommendation: SetBuilderRecommendation | null;
+  aiResponse: SetBuilderResponse | null;
   isLoading: boolean;
   error: string | null;
 }
 
-const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, error }) => {
+const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiResponse, isLoading, error }) => {
+  const [activeTab, setActiveTab] = React.useState<'value' | 'premium'>('value');
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [saveSuccess, setSaveSuccess] = React.useState(false);
   const dispatch = useDispatch();
   const { selections } = useSelector((state: RootState) => state.builder);
   const { selectedCurrency, rates } = useCurrency();
+  const router = require('next/navigation').useRouter();
 
   const handleReset = () => {
     dispatch(resetBuilder());
   };
 
-  // Use AI data if available, otherwise fall back to hardcoded mock
-  const fallback = getRecommendations(selections);
+  // Use the AI response directly (now flat) or fallback to experts
+  const currentRecommendation = aiResponse || getRecommendations(selections);
 
-  const title = aiRecommendation?.title ?? fallback.title;
-  const subtitle = aiRecommendation?.subtitle ?? fallback.subtitle;
-  const insight = aiRecommendation?.insight ?? fallback.insight;
+  const title = currentRecommendation.title;
+  const subtitle = currentRecommendation.subtitle;
+  const insight = currentRecommendation.insight;
 
-  const components = aiRecommendation
-    ? aiRecommendation.components.map((c) => ({
-        label: c.label,
-        name: c.name,
-        price: c.price_usd,
-        icon: ICON_MAP[c.icon_key] || <CheckCircleFilled />,
-      }))
-    : fallback.components;
+  const components = currentRecommendation.components.map((c) => ({
+    label: c.label,
+    name: c.name,
+    price: c.price || 0,
+    icon: ICON_MAP[c.icon_key] || <CheckCircleFilled />,
+  }));
 
   const totalPrice = components.reduce((sum, item) => sum + item.price, 0);
+
+  const handleSaveBuild = async () => {
+    setIsSaving(true);
+    try {
+      let userId = localStorage.getItem('guest_user_id');
+      if (!userId) {
+        const user = await createGuestUser();
+        userId = user.id;
+        localStorage.setItem('guest_user_id', userId);
+      }
+
+      const buildItems = currentRecommendation.components;
+      const result = await saveBuild(userId, title, buildItems, totalPrice);
+      if (result) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Failed to save build', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -110,13 +138,16 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, 
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
           >
-            <Tag
-              color={aiRecommendation ? 'green' : 'gold'}
-              style={{ marginBottom: 16, fontWeight: 700, padding: '4px 12px', fontSize: 13 }}
-            >
-              {aiRecommendation ? 'AI GENERATED' : 'EXPERT MATCH FOUND'}
-            </Tag>
-            <h1 style={{ fontSize: 56, fontWeight: 900, marginBottom: 12, lineHeight: 1.1 }}>
+            <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 24 }}>
+              <Tag
+                color={aiResponse ? 'green' : 'gold'}
+                style={{ fontWeight: 700, padding: '4px 12px', fontSize: 13, margin: 0 }}
+              >
+                {aiResponse ? 'AI GENERATED' : 'EXPERT MATCH FOUND'}
+              </Tag>
+            </div>
+
+            <h1 style={{ fontSize: 48, fontWeight: 900, marginBottom: 12, lineHeight: 1.1 }}>
               {title}
             </h1>
             <p style={{ fontSize: 22, color: 'var(--text-muted)', marginBottom: 32 }}>{subtitle}</p>
@@ -211,7 +242,7 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, 
                     <div style={{ fontSize: 15, fontWeight: 600 }}>{item.name}</div>
                   </div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>
-                    {formatPrice(item.price, 'USD', selectedCurrency, rates)}
+                    {formatPrice(item.price, 'THB', selectedCurrency, rates)}
                   </div>
                 </div>
               ))}
@@ -232,7 +263,7 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, 
                   Total Build Value
                 </div>
                 <div style={{ fontSize: 42, fontWeight: 900, color: 'var(--text-primary)' }}>
-                  {formatPrice(totalPrice, 'USD', selectedCurrency, rates)}
+                  {formatPrice(totalPrice, 'THB', selectedCurrency, rates)}
                 </div>
               </div>
               <motion.button
@@ -256,29 +287,69 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiRecommendation, isLoading, 
               </motion.button>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: 'var(--success)' }}
-              whileTap={{ scale: 0.98 }}
-              style={{
-                width: '100%',
-                marginTop: 40,
-                padding: '18px',
-                background: 'var(--text-primary)',
-                color: 'white',
-                borderRadius: 'var(--radius-lg)',
-                border: 'none',
-                fontWeight: 800,
-                fontSize: 17,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-              }}
-            >
-              Secure This Build <RocketOutlined />
-            </motion.button>
+            {saveSuccess && (
+              <Alert
+                message="Build saved successfully!"
+                type="success"
+                showIcon
+                style={{ marginTop: 24 }}
+                action={
+                  <Button size="small" type="link" onClick={() => router.push('/my-builds')}>
+                    View Saves
+                  </Button>
+                }
+              />
+            )}
+
+            <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
+              <motion.button
+                onClick={handleSaveBuild}
+                disabled={isSaving}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  flex: 1,
+                  padding: '18px',
+                  background: 'white',
+                  color: 'var(--primary)',
+                  borderRadius: 'var(--radius-lg)',
+                  border: '2px solid var(--primary)',
+                  fontWeight: 800,
+                  fontSize: 15,
+                  cursor: isSaving ? 'wait' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+              >
+                {isSaving ? <Spin size="small" /> : <HddOutlined />}
+                {isSaving ? 'Saving...' : 'Save Build'}
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02, backgroundColor: 'var(--success)' }}
+                whileTap={{ scale: 0.98 }}
+                style={{
+                  flex: 1.5,
+                  padding: '18px',
+                  background: 'var(--text-primary)',
+                  color: 'white',
+                  borderRadius: 'var(--radius-lg)',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: 16,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 12,
+                  boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                }}
+              >
+                Secure This Build <RocketOutlined />
+              </motion.button>
+            </div>
           </motion.div>
         </Col>
       </Row>

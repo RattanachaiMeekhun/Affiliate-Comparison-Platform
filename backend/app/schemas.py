@@ -12,6 +12,7 @@ class CategoryBase(BaseModel):
     is_active: bool = True
     meta_title: Optional[str] = None
     meta_description: Optional[str] = None
+    seo_content: Optional[str] = None
     icon_url: Optional[str] = None
     sort_order: int = 0
     trending_score: float = 0.0
@@ -96,6 +97,42 @@ class CurrencyRateBase(BaseModel):
 
 
 class CurrencyRate(CurrencyRateBase):
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class SavedBuildBase(BaseModel):
+    name: str
+    items: list
+    total_price: Decimal = Decimal("0.0")
+    currency: str = "THB"
+
+class SavedBuildCreate(SavedBuildBase):
+    pass
+
+class SavedBuild(SavedBuildBase):
+    id: UUID4
+    user_id: UUID4
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class UserBase(BaseModel):
+    email: str
+
+class UserCreate(UserBase):
+    password: str
+    is_admin: bool = False
+
+class UserResponse(UserBase):
+    id: UUID4
+    is_active: bool
+    is_admin: bool
+    created_at: datetime
     updated_at: datetime
 
     class Config:

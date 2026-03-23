@@ -1,12 +1,14 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface InitialState {
   currentStep: number;
   selections: Record<string, string>;
+  customRequirements: string;
 }
 const initialState: InitialState = {
   currentStep: 0,
   selections: {},
+  customRequirements: '',
 };
 
 const builderSlice = createSlice({
@@ -24,19 +26,17 @@ const builderSlice = createSlice({
       const { selections } = action.payload;
       state.selections = selections;
     },
+    setCustomRequirements: (state, action: PayloadAction<string>) => {
+      state.customRequirements = action.payload;
+    },
     resetBuilder: (state) => {
       state.currentStep = 0;
-      state.selections = {
-        'use-case': 'use-1',
-        budget: 'budget-2',
-        ecosystem: 'eco-4',
-        storage: 'st-2',
-        memory: 'mem-2',
-      };
+      state.selections = {};
+      state.customRequirements = '';
     },
   },
 });
 
-export const { setStep, setSelection, setSelections, resetBuilder } = builderSlice.actions;
+export const { setStep, setSelection, setSelections, setCustomRequirements, resetBuilder } = builderSlice.actions;
 
 export default builderSlice.reducer;

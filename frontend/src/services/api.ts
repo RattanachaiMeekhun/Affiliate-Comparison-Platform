@@ -112,3 +112,52 @@ export async function fetchCurrencies(): Promise<CurrencyRate[]> {
     return [];
   }
 }
+
+export interface SavedBuild {
+  id: string;
+  name: string;
+  items: any[];
+  total_price: number;
+  currency: string;
+  created_at: string;
+}
+
+export async function createGuestUser(): Promise<{ id: string }> {
+  const res = await api.post<{ id: string }>('/auth/guest');
+  return res.data;
+}
+
+export async function saveBuild(userId: string, name: string, items: any[], totalPrice: number): Promise<SavedBuild | null> {
+  try {
+    const res = await api.post<SavedBuild>(`/builds/?user_id=${userId}`, {
+      name,
+      items,
+      total_price: totalPrice,
+      currency: 'THB'
+    });
+    return res.data;
+  } catch (error) {
+    console.error('Failed to save build', error);
+    return null;
+  }
+}
+
+export async function fetchUserBuilds(userId: string): Promise<SavedBuild[]> {
+  try {
+    const res = await api.get<SavedBuild[]>(`/builds/user/${userId}`);
+    return res.data;
+  } catch (error) {
+    console.error('Failed to fetch user builds', error);
+    return [];
+  }
+}
+
+export async function deleteBuild(buildId: string): Promise<boolean> {
+  try {
+    await api.delete(`/builds/${buildId}`);
+    return true;
+  } catch (error) {
+    console.error('Failed to delete build', error);
+    return false;
+  }
+}

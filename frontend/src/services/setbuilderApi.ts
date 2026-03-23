@@ -1,13 +1,21 @@
 import api from '@/util/axios';
 
 export interface ComponentItem {
+  id?: string;
   label: string;
   name: string;
-  price_usd: number;
+  price: number;
   icon_key: string;
 }
 
 export interface SetBuilderRecommendation {
+  title: string;
+  subtitle: string;
+  components: ComponentItem[];
+  insight: string;
+}
+
+export interface SetBuilderResponse {
   title: string;
   subtitle: string;
   components: ComponentItem[];
@@ -21,12 +29,14 @@ interface SetBuilderPayload {
   storage: string;
   memory: string;
   currency: string;
+  custom_requirements?: string;
 }
 
 export async function fetchSetBuilderRecommendation(
   selections: Record<string, string>,
   currency: string,
-): Promise<SetBuilderRecommendation> {
+  customRequirements?: string
+): Promise<SetBuilderResponse> {
   const payload: SetBuilderPayload = {
     use_case: selections['use-case'] || '',
     budget: selections['budget'] || '',
@@ -34,11 +44,9 @@ export async function fetchSetBuilderRecommendation(
     storage: selections['storage'] || '',
     memory: selections['memory'] || '',
     currency,
+    ...(customRequirements ? { custom_requirements: customRequirements } : {}),
   };
 
-  const res = await api.post<SetBuilderRecommendation>(
-    '/api/setbuilder/recommend',
-    payload,
-  );
+  const res = await api.post<SetBuilderResponse>('/api/setbuilder/recommend', payload);
   return res.data;
 }

@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Input } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { SearchOutlined, FolderOpenOutlined } from '@ant-design/icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
 import { fetchProducts, Product } from '@/services/api';
@@ -210,8 +211,13 @@ export default function Header() {
             </AnimatePresence>
           </div>
 
-          <div style={{ marginLeft: 16 }}>
+          <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
             <CurrencySelector />
+            <Link href="/my-builds">
+               <Button type="default" icon={<FolderOpenOutlined />} style={{ borderRadius: 8, fontWeight: 500 }}>
+                  My Builds
+               </Button>
+            </Link>
           </div>
         </div>
       </motion.header>

@@ -1,8 +1,8 @@
-import { 
-  CheckCircleFilled, 
-  RocketOutlined, 
-  SettingOutlined, 
-  ThunderboltOutlined 
+import {
+  CheckCircleFilled,
+  RocketOutlined,
+  SettingOutlined,
+  ThunderboltOutlined,
 } from '@ant-design/icons';
 import React from 'react';
 
@@ -50,7 +50,8 @@ export const steps: Step[] = [
   {
     id: 1,
     title: 'Usage & Preferences',
-    description: 'Tell us your needs, and our AI will curate the perfect professional workstation for you in real-time.',
+    description:
+      'Tell us your needs, and our AI will curate the perfect professional workstation for you in real-time.',
     sections: [
       {
         id: 'use-case',
@@ -84,69 +85,28 @@ export const steps: Step[] = [
       },
     ],
   },
-  {
-    id: 2,
-    title: 'Additional Details',
-    description: 'Fine-tune your build with storage and memory preferences to get the most accurate results.',
-    sections: [
-       {
-        id: 'storage',
-        label: 'Storage Capacity',
-        options: [
-          { id: 'st-1', label: '500GB - Fast', icon: '⚡' },
-          { id: 'st-2', label: '1TB - Standard', icon: '💿' },
-          { id: 'st-3', label: '2TB - Pro', icon: '🔋' },
-          { id: 'st-4', label: '4TB+ - Data Heavy', icon: '🗄️' },
-        ],
-      },
-      {
-        id: 'memory',
-        label: 'Memory (RAM)',
-        options: [
-          { id: 'mem-1', label: '16GB', icon: '🧩' },
-          { id: 'mem-2', label: '32GB', icon: '🧱' },
-          { id: 'mem-3', label: '64GB', icon: '🏔️' },
-          { id: 'mem-4', label: '128GB+', icon: '🌌' },
-        ],
-      },
-    ]
-  },
-  {
-    id: 3,
-    title: 'Final Review',
-    description: 'Review your selected preferences before we finalize your custom professional build.',
-    sections: []
-  }
 ];
 
-export interface ComponentItem {
-  label: string;
-  name: string;
-  price: number;
-  icon: React.ReactNode;
-}
+import { SetBuilderRecommendation } from '@/services/setbuilderApi';
 
-export interface Recommendation {
-  title: string;
-  subtitle: string;
-  components: ComponentItem[];
-  insight: string;
-}
-
-export const getRecommendations = (selections: Record<string, string>): Recommendation => {
+export const getRecommendations = (
+  selections: Record<string, string>
+): SetBuilderRecommendation => {
   const useCase = selections['use-case'];
-  
-  if (useCase === 'use-2') { // Video Editing
+
+  if (useCase === 'use-2') {
+    // Video Editing
     return {
       title: 'The Cinema Engine',
       subtitle: 'Optimized for 8K Raw Workflows',
       components: [
-        { label: 'Processor', name: 'Intel Core i9-14900K', price: 599, icon: <ThunderboltOutlined /> },
-        { label: 'Graphics Card', name: 'NVIDIA RTX 4080 Super', price: 1199, icon: <RocketOutlined /> },
-        { label: 'Memory', name: '64GB DDR5-6000MHz', price: 220, icon: <SettingOutlined /> },
-        { label: 'Storage', name: '2TB NVMe Gen5 SSD', price: 180, icon: <CheckCircleFilled /> },
+        { label: 'Processor', name: 'Intel Core i9-14900K', price: 21500, icon_key: 'processor' },
+        { label: 'Graphics Card', name: 'NVIDIA RTX 4080 Super', price: 42900, icon_key: 'gpu' },
+        { label: 'Memory', name: '64GB DDR5-6000MHz', price: 7900, icon_key: 'memory' },
+        { label: 'Storage', name: '2TB NVMe Gen5 SSD', price: 6500, icon_key: 'storage' },
       ],
-      insight: 'The RTX 4080 Super provides excellent AV1 encoding performance, perfect for your selected workflow. This setup ensures zero dropped frames during real-time playback.'
+      insight:
+        'The RTX 4080 Super provides excellent AV1 encoding performance, perfect for your selected workflow. This setup ensures zero dropped frames during real-time playback.',
     };
   }
 
@@ -155,11 +115,12 @@ export const getRecommendations = (selections: Record<string, string>): Recommen
     title: 'Precision Workstation',
     subtitle: 'Balanced for Performance & Reliability',
     components: [
-      { label: 'Processor', name: 'AMD Ryzen 9 7950X', price: 549, icon: <ThunderboltOutlined /> },
-      { label: 'Graphics Card', name: 'NVIDIA RTX 4070 Ti Super', price: 799, icon: <RocketOutlined /> },
-      { label: 'Memory', name: '32GB DDR5-6000MHz', price: 125, icon: <SettingOutlined /> },
-      { label: 'Storage', name: '1TB NVMe Gen4 SSD', price: 95, icon: <CheckCircleFilled /> },
+      { label: 'Processor', name: 'AMD Ryzen 9 7950X', price: 19500, icon_key: 'processor' },
+      { label: 'Graphics Card', name: 'NVIDIA RTX 4070 Ti Super', price: 28900, icon_key: 'gpu' },
+      { label: 'Memory', name: '32GB DDR5-6000MHz', price: 4500, icon_key: 'memory' },
+      { label: 'Storage', name: '1TB NVMe Gen4 SSD', price: 3400, icon_key: 'storage' },
     ],
-    insight: 'This build offers a great balance of multicore performance and graphical efficiency for most professional tasks. It excels in heavy multi-tasking and parallel processing.'
+    insight:
+      'This build offers a great balance of multicore performance and graphical efficiency for most professional tasks. It excels in heavy multi-tasking and parallel processing.',
   };
 };

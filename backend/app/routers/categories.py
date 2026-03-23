@@ -5,6 +5,9 @@ from typing import List
 from .. import crud, schemas, database
 from app.services.storage_service import StorageService
 from app.services.serper_service import SerperService
+from app.ai.seo.generator import generate_category_seo
+import uuid
+from fastapi import HTTPException
 
 router = APIRouter(prefix="/categories", tags=["categories"])
 
@@ -82,3 +85,29 @@ async def update_category(
 
     crud.update_category(db=db, categorise=categories)
     return categories
+
+
+@router.post("/{category_id}/seo", response_model=schemas.Category)
+async def generate_seo_for_category(
+    category_id: uuid.UUID, db: Session = Depends(database.get_db)
+):
+    category = crud.get_category(db, category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+        
+    products = crud.get_products_by_category(db, str(category_id), skip=0, limit=10)
+    if not products:
+        raise HTTPException(status_code=400, detail="Not enough products in category to generate SEO")
+        
+    seo_data = await generate_category_seo(
+        category_name=category.name,
+        category_description=category.description or "",
+        products=products
+    )
+    
+    category.meta_title = seo_data.get("meta_title", category.meta_title)
+    category.meta_description = seo_data.get("meta_description", category.meta_description)
+    category.seo_content = seo_data.get("seo_content", category.seo_content)
+    
+    crud.update_category(db=db, categorise=[category])
+    return category

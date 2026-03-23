@@ -108,6 +108,8 @@ def vector_search_node(state: SetBuilderState) -> dict:
     all_products = []
     vs = VectorService()
 
+    custom_reqs = state.get("custom_requirements", "") or ""
+
     try:
         for category in target_categories:
             query_parts = [
@@ -120,6 +122,9 @@ def vector_search_node(state: SetBuilderState) -> dict:
                 query_parts.append(f"RAM capacity: {state['memory']}")
             elif category == "Storage":
                 query_parts.append(f"capacity: {state['storage']}")
+
+            if custom_reqs:
+                query_parts.append(f"user requirements: {custom_reqs}")
                 
             query = ", ".join(query_parts)
             
@@ -159,6 +164,8 @@ def recommend_node(state: SetBuilderState) -> dict:
     retrieved = state.get("retrieved_products") or []
     requested_currency = state.get("currency", "THB")
 
+    custom_reqs = state.get("custom_requirements", "") or ""
+
     # Build user prompt
     user_prompt = (
         f"Build me a PC with these preferences:\n"
@@ -167,9 +174,13 @@ def recommend_node(state: SetBuilderState) -> dict:
         f"- Ecosystem: {state['ecosystem']}\n"
         f"- Storage: {state['storage']}\n"
         f"- Memory (RAM): {state['memory']}\n"
-        f"- Display Currency: {requested_currency}\n\n"
-        f"IMPORTANT: Select exactly 6 components from the catalogue. Return ONLY the JSON with product IDs.\n"
+        f"- Display Currency: {requested_currency}\n"
     )
+
+    if custom_reqs:
+        user_prompt += f"\n## Additional User Requirements:\n{custom_reqs}\n\n"
+    
+    user_prompt += "IMPORTANT: Select exactly 6 components from the catalogue. Return ONLY the JSON with product IDs.\n"
 
     catalogue_lines = []
     if retrieved:
@@ -200,7 +211,12 @@ def recommend_node(state: SetBuilderState) -> dict:
         recommendation = json.loads(cleaned)
         
         # --- ENRICHMENT STEP ---
-        component_ids = [c.get("id") for c in recommendation.get("components", []) if c.get("id")]
+        component_ids = []
+        picks = ["value_pick", "premium_pick"]
+        for pick in picks:
+            if pick in recommendation:
+                # Add IDs from each pick
+                component_ids.extend([c.get("id") for c in recommendation[pick].get("components", []) if c.get("id")])
         
         from sqlalchemy.orm import joinedload
         from app.database import SessionLocal
@@ -217,58 +233,48 @@ def recommend_node(state: SetBuilderState) -> dict:
             )
             prod_map = {str(p.id): p for p in db_products}
             
-            rate_requested = get_exchange_rate(requested_currency) if requested_currency != "THB" else 1.0
-            
-            enriched_components = []
-            for comp_ref in recommendation.get("components", []):
-                p_id = comp_ref.get("id")
-                p = prod_map.get(str(p_id))
+            for pick in picks:
+                if pick not in recommendation:
+                    continue
                 
-                if p:
-                    # Calculate price in requested currency
-                    # Product.price is in THB by default
-                    final_price = float(p.price)
-                    if p.currency == "THB" and requested_currency != "THB":
-                        final_price = float(p.price) * rate_requested
-                    elif p.currency != "THB" and requested_currency == "THB":
-                        # If product is in USD, convert back to THB
-                        # This should be rare but let's be safe
-                        rate_usd = get_exchange_rate("USD")
-                        final_price = float(p.price) / rate_usd if rate_usd > 0 else float(p.price) * 36
+                enriched_components = []
+                for comp_ref in recommendation[pick].get("components", []):
+                    p_id = comp_ref.get("id")
+                    p = prod_map.get(str(p_id))
                     
-                    # Map category/label to icon_key
-                    icon_map = {
-                        "Processor": "processor",
-                        "Graphics Card": "gpu",
-                        "Memory": "memory",
-                        "Storage": "storage",
-                        "Motherboard": "motherboard",
-                        "PSU": "psu",
-                        "CPU": "processor",
-                        "GPU": "gpu",
-                        "RAM": "memory",
-                        "SSD": "storage",
-                        "HDD": "storage"
-                    }
-                    
-                    category_name = p.category.name if p.category else comp_ref.get("label", "Component")
-                    icon_key = icon_map.get(category_name, p.category.slug if p.category else "processor")
-                    # Fallback for common variations
-                    if "Graphics" in category_name:
-                        icon_key = "gpu"
-                    if "Power" in category_name:
-                        icon_key = "psu"
+                    if p:
+                        # Map category/label to icon_key
+                        icon_map = {
+                            "Processor": "processor",
+                            "Graphics Card": "gpu",
+                            "Memory": "memory",
+                            "Storage": "storage",
+                            "Motherboard": "motherboard",
+                            "PSU": "psu",
+                            "CPU": "processor",
+                            "GPU": "gpu",
+                            "RAM": "memory",
+                            "SSD": "storage",
+                            "HDD": "storage"
+                        }
+                        
+                        category_name = p.category.name if p.category else comp_ref.get("label", "Component")
+                        icon_key = icon_map.get(category_name, p.category.slug if p.category else "processor")
+                        if "Graphics" in category_name:
+                            icon_key = "gpu"
+                        if "Power" in category_name:
+                            icon_key = "psu"
 
-                    enriched_components.append({
-                        "id": str(p.id),
-                        "label": comp_ref.get("label", category_name),
-                        "name": p.name,
-                        "price_usd": final_price, # We use the 'price_usd' field for display price
-                        "icon_key": icon_key,
-                        "from_catalogue": True
-                    })
-            
-            recommendation["components"] = enriched_components
+                        enriched_components.append({
+                            "id": str(p.id),
+                            "label": comp_ref.get("label", category_name),
+                            "name": p.name,
+                            "price": float(p.price),
+                            "icon_key": icon_key,
+                            "from_catalogue": True
+                        })
+                
+                recommendation[pick]["components"] = enriched_components
             
         except Exception as e:
             print(f"    ✗ Enrichment failed: {e}")
@@ -278,10 +284,18 @@ def recommend_node(state: SetBuilderState) -> dict:
     except json.JSONDecodeError as e:
         print(f"    ✗ JSON parse failed: {e}")
         recommendation = {
-            "title": "Build Recommendation",
-            "subtitle": "AI-generated build",
-            "components": [],
-            "insight": raw,
+            "value_pick": {
+                "title": "Build Recommendation",
+                "subtitle": "AI-generated build",
+                "components": [],
+                "insight": raw,
+            },
+            "premium_pick": {
+                "title": "Build Recommendation",
+                "subtitle": "AI-generated premium build",
+                "components": [],
+                "insight": "Data load failed",
+            }
         }
 
     return {

@@ -9,16 +9,17 @@ class SetBuilderRequest(BaseModel):
     use_case: str
     budget: str
     ecosystem: str
-    storage: str
-    memory: str
-    currency: str = "USD"
+    storage: str | None = "No Preference"
+    memory: str | None = "No Preference"
+    currency: str = "THB"
+    custom_requirements: str | None = None
 
 
 class ComponentResponse(BaseModel):
     id: str | None = None
     label: str
     name: str
-    price_usd: float
+    price: float
     icon_key: str
     from_catalogue: bool = False
 
@@ -45,6 +46,7 @@ async def recommend_build(req: SetBuilderRequest):
                 "storage": req.storage,
                 "memory": req.memory,
                 "currency": req.currency,
+                "custom_requirements": req.custom_requirements or "",
                 "messages": [],
                 "recommendation": None,
             }
@@ -53,7 +55,19 @@ async def recommend_build(req: SetBuilderRequest):
         print(f"SetBuilder graph error: {e}")
         raise HTTPException(status_code=500, detail=f"AI graph failed: {str(e)}")
 
-    recommendation = result.get("recommendation")
+    recommendation_data = result.get("recommendation")
+    if not recommendation_data:
+        raise HTTPException(
+            status_code=500,
+            detail="AI returned no recommendation data",
+        )
+
+    # The AI returns two builds: value_pick and premium_pick.
+    # We'll return the premium_pick as the primary recommendation, or fallback to value_pick.
+    recommendation = recommendation_data.get("premium_pick")
+    if not recommendation or not recommendation.get("components"):
+        recommendation = recommendation_data.get("value_pick")
+    
     if not recommendation or not recommendation.get("components"):
         raise HTTPException(
             status_code=500,
@@ -68,7 +82,7 @@ async def recommend_build(req: SetBuilderRequest):
                 id=c.get("id"),
                 label=c.get("label", "Unknown"),
                 name=c.get("name", "Unknown"),
-                price_usd=float(c.get("price_usd", 0)),
+                price=float(c.get("price", c.get("price_usd", 0))),
                 icon_key=c.get("icon_key", "processor"),
                 from_catalogue=c.get("from_catalogue", False),
             )
