@@ -213,11 +213,13 @@ export default function Header() {
 
           <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
             <CurrencySelector />
+{/* 
             <Link href="/my-builds">
                <Button type="default" icon={<FolderOpenOutlined />} style={{ borderRadius: 8, fontWeight: 500 }}>
                   My Builds
                </Button>
-            </Link>
+            </Link> 
+            */}
           </div>
         </div>
       </motion.header>

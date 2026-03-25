@@ -99,6 +99,7 @@ app.add_middleware(
 app.include_router(categories.router,dependencies=[Depends(verify_hmac_signature)])
 app.include_router(products.router,dependencies=[Depends(verify_hmac_signature)])
 app.include_router(affiliate.router,dependencies=[Depends(verify_hmac_signature)])
+app.include_router(affiliate.public_router)  # No HMAC — browser-facing redirects
 app.include_router(serper.router,dependencies=[Depends(verify_hmac_signature)])
 app.include_router(currencies.router,dependencies=[Depends(verify_hmac_signature)])
 app.include_router(setbuilder.router,dependencies=[Depends(verify_hmac_signature)])

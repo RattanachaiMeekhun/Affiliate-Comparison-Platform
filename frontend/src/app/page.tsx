@@ -89,7 +89,6 @@ export default function HomePage() {
       setIsLoading(false);
     }
   }
-  console.log(products);
 
   return (
     <AnimatedPage>

@@ -1,4 +1,4 @@
-from app.services import SerperService
+from app.services import SerperService, affiliate_service
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -26,11 +26,21 @@ def read_products(
     db: Session = Depends(database.get_db),
 ):
     try:
+        products = []
         if category:
-            return crud.get_products_by_category(
+            products = crud.get_products_by_category(
                 db, category=category, skip=skip, limit=limit
             )
-        return crud.get_products(db, skip=skip, limit=limit)
+        else:
+            products = crud.get_products(db, skip=skip, limit=limit)
+        
+        # Inject affiliate URL and price range
+        for p in products:
+            p.affiliate_url = affiliate_service.generate_amazon_search_url(p.name)
+            price_min, price_max = crud.get_price_range(db, p.id)
+            p.price_min = price_min
+            p.price_max = price_max
+        return products
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -40,6 +50,12 @@ def read_product(product_id: str, db: Session = Depends(database.get_db)):
     db_product = crud.get_product(db, product_id=product_id)
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Inject affiliate URL and price range
+    db_product.affiliate_url = affiliate_service.generate_amazon_search_url(db_product.name)
+    price_min, price_max = crud.get_price_range(db, db_product.id)
+    db_product.price_min = price_min
+    db_product.price_max = price_max
     return db_product
 
 
@@ -48,6 +64,12 @@ def read_product_by_slug(slug: str, db: Session = Depends(database.get_db)):
     db_product = crud.get_product_by_slug(db, slug=slug)
     if db_product is None:
         raise HTTPException(status_code=404, detail="Product not found")
+    
+    # Inject affiliate URL and price range
+    db_product.affiliate_url = affiliate_service.generate_amazon_search_url(db_product.name)
+    price_min, price_max = crud.get_price_range(db, db_product.id)
+    db_product.price_min = price_min
+    db_product.price_max = price_max
     return db_product
 
 

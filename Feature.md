@@ -10,21 +10,14 @@ stacknodes.net serves as a high-performance, data-driven hub that bridges the ga
 
 The system is built on a modular micro-services architecture to ensure high availability and data integrity.
 
-- **Ingestion Layer:** Asynchronous crawlers (Playwright/Scrapy) managing multi-source data ingestion.
-- **Intelligence Layer:** Gemini-based matching engine utilizing vector embeddings (PGVector) to normalize product identities.
-- **Distribution Layer:** SEO-optimized frontend (Next.js) serving server-side rendered (SSR) content.
-- **Operations Layer:** Backend management of data and scraper health monitoring.
-
-### 3. Feature Specifications
-
 | Feature                | Description                                                     | Implementation Priority |
 | :--------------------- | :-------------------------------------------------------------- | :---------------------- |
-| **Smart Aggregator**   | Centralizes data from Shopee, Lazada, and partner programs.     | P0                      |
-| **Semantic Matching**  | AI-driven product normalization (e.g., "iPhone 15" vs "iP 15"). | P0                      |
+| **Smart Aggregator**   | Centralizes data from Amazon and major tech partners.           | P0                      |
+| **Semantic Matching**  | AI-driven product normalization for global marketplaces.        | P0                      |
 | **Interactive Tables** | Filterable, sortable, and responsive comparison grids.          | P0                      |
 | **Price History API**  | Tracks price fluctuations for historical value analysis.        | P1                      |
 | **AI Insights Panel**  | Automated Pros/Cons and value scores for each product.          | P1                      |
-| **Setup Builder**      | User-input tool to generate hardware recommendations.           | P2                      |
+| **Setup Builder**      | AI-driven hardware recommendations with Amazon SiteStripe.      | P2                      |
 
 ### 4. Page Hierarchy
 
@@ -53,5 +46,5 @@ The system is built on a modular micro-services architecture to ensure high avai
 
 1.  **Environment Setup:** Initialize the GitHub repository and CI/CD pipeline.
 2.  **Schema Design:** Finalize the normalized PostgreSQL schema for multi-category products.
-3.  **MVP Ingestion:** Deploy the first scraper for a specific sub-niche (e.g., Mechanical Keyboards) to validate the Matching Engine.
+3.  **Amazon Integration:** Implement automated search-link generation and SiteStripe-friendly affiliate mapping.
 4.  **SEO Foundation:** Implement Structured Data (Schema.org) immediately upon the first page deployment.

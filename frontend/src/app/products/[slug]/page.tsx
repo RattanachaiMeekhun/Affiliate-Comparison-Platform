@@ -167,6 +167,15 @@ export default function ProductDetailPage() {
                     )}
                   </div>
 
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}affiliate/amazon-search?q=${encodeURIComponent(product.name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.amazonBtn}
+                  >
+                    <ShopOutlined /> Buy on Amazon
+                  </a>
+
                   <motion.button
                     className={styles.trackBtn}
                     whileHover={{ scale: 1.02 }}
@@ -218,72 +227,87 @@ export default function ProductDetailPage() {
             {/* Where to Buy */}
             <div className={styles.buyPanel}>
               <h3 className={styles.buyTitle}>🛒 Where to Buy</h3>
-              {product.affiliate_products.length > 0 ? (
-                product.affiliate_products.map((mp, i) => (
-                  <motion.div
-                    key={mp.id || i}
-                    className={styles.buyOption}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.4 + i * 0.1 }}
-                  >
-                    <div className={styles.buyLeft}>
-                      <div className={styles.buyIcon} style={{ background: '#2563EB' }}>
-                        <ShopOutlined />
-                      </div>
-                      <div style={{ overflow: 'hidden' }}>
-                        <div
-                          className={styles.buyName}
-                          style={{
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            maxWidth: '120px',
-                          }}
-                        >
-                          {mp.source_name}
-                        </div>
-                        <div className={styles.buyShipping}>
-                          {mp.price && Number(mp.price) > 0
-                            ? formatPrice(mp.price, mp.currency || 'THB', selectedCurrency, rates)
-                            : 'Check Price'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className={styles.buyRight}>
-                      {/* <a
-                        href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/go/${mp.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={styles.buyLink}
-                        style={{ textDecoration: 'none' }}
+
+              {/* Primary CTA — Amazon Search (always visible) */}
+              <a
+                href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/amazon-search?q=${encodeURIComponent(product.name)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.amazonBtn}
+                style={{ marginBottom: 16 }}
+              >
+                <ShopOutlined /> Buy on Amazon
+              </a>
+
+              {/* Marketplace Listings from DB */}
+              {product.affiliate_products.length > 0 && (
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: 12 }}>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', fontWeight: 600, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    Also Available On
+                  </div>
+                  {product.affiliate_products.map((mp, i) => {
+                    const sourceLower = mp.source_name.toLowerCase();
+                    const sourceColor = sourceLower.includes('amazon') ? '#FF9900'
+                      : sourceLower.includes('shopee') ? '#EE4D2D'
+                      : sourceLower.includes('lazada') ? '#0F146D'
+                      : '#2563EB';
+
+                    return (
+                      <motion.div
+                        key={mp.id || i}
+                        className={styles.buyOption}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 + i * 0.1 }}
                       >
-                        View Deal →
-                      </a> */}
-                    </div>
-                  </motion.div>
-                ))
-              ) : (
-                <div
-                  style={{
-                    fontSize: 13,
-                    color: 'var(--text-muted)',
-                    textAlign: 'center',
-                    padding: '12px 0',
-                  }}
-                >
-                  No active listings found for this product.
+                        <div className={styles.buyLeft}>
+                          <div className={styles.buyIcon} style={{ background: sourceColor }}>
+                            <ShopOutlined />
+                          </div>
+                          <div style={{ overflow: 'hidden' }}>
+                            <div
+                              className={styles.buyName}
+                              style={{
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '120px',
+                              }}
+                            >
+                              {mp.source_name}
+                            </div>
+                            <div className={styles.buyShipping}>
+                              {mp.price && Number(mp.price) > 0
+                                ? formatPrice(mp.price, mp.currency || 'THB', selectedCurrency, rates)
+                                : 'Check Price'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className={styles.buyRight}>
+                          <a
+                            href={mp.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={styles.buyLink}
+                            style={{ textDecoration: 'none' }}
+                          >
+                            View Deal →
+                          </a>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
               )}
-              <div 
-                style={{ 
-                  marginTop: 16, 
-                  paddingTop: 12, 
-                  borderTop: '1px solid var(--border)', 
-                  fontSize: '11px', 
+              <div
+                style={{
+                  marginTop: 16,
+                  paddingTop: 12,
+                  borderTop: '1px solid var(--border)',
+                  fontSize: '11px',
                   color: 'var(--text-muted)',
                   fontStyle: 'italic',
-                  lineHeight: '1.4'
+                  lineHeight: '1.4',
                 }}
               >
                 As an Amazon Associate I earn from qualifying purchases.

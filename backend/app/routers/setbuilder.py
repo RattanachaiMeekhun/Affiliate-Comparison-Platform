@@ -22,6 +22,7 @@ class ComponentResponse(BaseModel):
     price: float
     icon_key: str
     from_catalogue: bool = False
+    affiliate_url: str | None = None
 
 
 class SetBuilderResponse(BaseModel):
@@ -75,16 +76,22 @@ async def recommend_build(req: SetBuilderRequest):
         )
 
     # Normalise components to match response schema
+    from app.services.affiliate_service import affiliate_service
+    
     components = []
     for c in recommendation.get("components", []):
+        name = c.get("name", "Unknown")
+        affiliate_url = affiliate_service.generate_amazon_search_url(name)
+        
         components.append(
             ComponentResponse(
                 id=c.get("id"),
                 label=c.get("label", "Unknown"),
-                name=c.get("name", "Unknown"),
+                name=name,
                 price=float(c.get("price", c.get("price_usd", 0))),
                 icon_key=c.get("icon_key", "processor"),
                 from_catalogue=c.get("from_catalogue", False),
+                affiliate_url=affiliate_url,
             )
         )
 

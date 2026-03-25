@@ -77,7 +77,21 @@ class Product(ProductBase):
     category_name: Optional[str] = None
     specs: Optional[dict] = None
     trending_score: float = 0.0
+    affiliate_url: Optional[str] = None
     affiliate_products: List[AffiliateProduct] = []
+    price_min: Optional[Decimal] = None
+    price_max: Optional[Decimal] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PriceHistoryEntry(BaseModel):
+    id: UUID4
+    source: str = "system"
+    price: Decimal
+    currency: str = "THB"
+    timestamp: datetime
 
     class Config:
         from_attributes = True

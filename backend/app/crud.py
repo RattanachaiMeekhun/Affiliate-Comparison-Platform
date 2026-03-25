@@ -254,3 +254,83 @@ def update_currency_rate(db: Session, code: str, rate: float):
     db.commit()
     db.refresh(db_rate)
     return db_rate
+
+
+def upsert_price_history(
+    db: Session,
+    product_id: uuid.UUID,
+    price: float,
+    currency: str = "THB",
+    source: str = "system",
+):
+    """
+    Insert a new price record only if price changed.
+    If the latest price for this product+source is the same, just bump the timestamp.
+    """
+    from decimal import Decimal
+
+    latest = (
+        db.query(models.PriceHistory)
+        .filter(
+            models.PriceHistory.product_id == product_id,
+            models.PriceHistory.source == source,
+        )
+        .order_by(models.PriceHistory.timestamp.desc())
+        .first()
+    )
+
+    price_decimal = Decimal(str(price))
+
+    if latest and latest.price == price_decimal and latest.currency == currency:
+        # Same price — just update timestamp
+        latest.timestamp = datetime.utcnow()
+        db.commit()
+        return latest
+    else:
+        # New price — insert
+        new_record = models.PriceHistory(
+            product_id=product_id,
+            source=source,
+            price=price_decimal,
+            currency=currency,
+        )
+        db.add(new_record)
+        db.commit()
+        db.refresh(new_record)
+        return new_record
+
+
+def get_price_range(db: Session, product_id: uuid.UUID):
+    """
+    Get the min and max price from the latest price entries per source.
+    Returns (price_min, price_max) or (None, None).
+    """
+    from sqlalchemy import func
+
+    # Get the latest price per source for the product
+    subquery = (
+        db.query(
+            models.PriceHistory.source,
+            func.max(models.PriceHistory.timestamp).label("latest_ts"),
+        )
+        .filter(models.PriceHistory.product_id == product_id)
+        .group_by(models.PriceHistory.source)
+        .subquery()
+    )
+
+    latest_prices = (
+        db.query(models.PriceHistory.price)
+        .join(
+            subquery,
+            (models.PriceHistory.source == subquery.c.source)
+            & (models.PriceHistory.timestamp == subquery.c.latest_ts)
+            & (models.PriceHistory.product_id == product_id),
+        )
+        .all()
+    )
+
+    if not latest_prices:
+        return (None, None)
+
+    prices = [p[0] for p in latest_prices]
+    return (min(prices), max(prices))

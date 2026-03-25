@@ -287,6 +287,7 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiResponse, isLoading, error 
               </motion.button>
             </div>
 
+            {/* Hide Save Success for now
             {saveSuccess && (
               <Alert
                 message="Build saved successfully!"
@@ -300,8 +301,10 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiResponse, isLoading, error 
                 }
               />
             )}
+            */}
 
             <div style={{ display: 'flex', gap: 16, marginTop: 40 }}>
+              {/* Hide Save Build for now
               <motion.button
                 onClick={handleSaveBuild}
                 disabled={isSaving}
@@ -326,12 +329,13 @@ const ReviewBuild: React.FC<ReviewBuildProps> = ({ aiResponse, isLoading, error 
                 {isSaving ? <Spin size="small" /> : <HddOutlined />}
                 {isSaving ? 'Saving...' : 'Save Build'}
               </motion.button>
+              */}
 
               <motion.button
                 whileHover={{ scale: 1.02, backgroundColor: 'var(--success)' }}
                 whileTap={{ scale: 0.98 }}
                 style={{
-                  flex: 1.5,
+                  flex: 1, // Changed to fill available space
                   padding: '18px',
                   background: 'var(--text-primary)',
                   color: 'white',

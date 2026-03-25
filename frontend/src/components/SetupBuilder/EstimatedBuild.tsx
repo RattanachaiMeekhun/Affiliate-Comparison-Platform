@@ -12,6 +12,8 @@ import {
   ApiOutlined,
   CheckCircleFilled,
   ExperimentOutlined,
+  ShoppingOutlined,
+  ArrowRightOutlined,
 } from '@ant-design/icons';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store';
@@ -158,9 +160,33 @@ const EstimatedBuild: React.FC<EstimatedBuildProps> = ({ aiResponse, isLoading, 
                     </div>
                     <div style={{ fontSize: 14, fontWeight: 600 }}>{item.name}</div>
                   </div>
-                  <div style={{ fontWeight: 700, fontSize: 14 }}>
+                  <div style={{ fontWeight: 700, fontSize: 14, minWidth: 80, textAlign: 'right' }}>
                     {formatPrice(item.price || 0, 'THB', selectedCurrency, rates)}
                   </div>
+                  <a
+                    href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/amazon-search?q=${encodeURIComponent(item.name)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="buy-button"
+                    style={{
+                      padding: '4px 8px',
+                      background: '#FF9900',
+                      color: 'white',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      transition: 'all 0.2s',
+                      textDecoration: 'none',
+                      marginLeft: 8,
+                    }}
+                    onMouseEnter={(e) => (e.currentTarget.style.filter = 'brightness(1.1)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.filter = 'none')}
+                  >
+                    Buy <ShoppingOutlined />
+                  </a>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -213,6 +239,35 @@ const EstimatedBuild: React.FC<EstimatedBuildProps> = ({ aiResponse, isLoading, 
             </div>
             {isLoading && <Spin size="small" />}
           </div>
+
+          <Divider style={{ margin: '24px 0' }} />
+
+          <motion.a
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/amazon-search?q=${encodeURIComponent(
+              aiResponse!.components.map((c) => c.name).join(' ')
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 10,
+              width: '100%',
+              padding: '16px',
+              background: 'linear-gradient(135deg, #232f3e 0%, #37475a 100%)',
+              color: 'white',
+              borderRadius: 'var(--radius-xl)',
+              fontSize: 16,
+              fontWeight: 800,
+              textDecoration: 'none',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            }}
+          >
+            Shop Full Build on Amazon <ArrowRightOutlined />
+          </motion.a>
         </>
       )}
 

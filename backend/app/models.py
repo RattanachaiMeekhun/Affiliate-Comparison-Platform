@@ -66,7 +66,7 @@ class AffiliateProduct(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=True, index=True)
-    source_name = Column(String, nullable=False)  # e.g., Lazada, Shopee
+    source_name = Column(String, nullable=False)  # e.g., Amazon
     source_product_id = Column(String, nullable=False)
     source_url = Column(String, nullable=False)
     price = Column(Numeric(10, 2))
@@ -84,6 +84,7 @@ class PriceHistory(Base):
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), index=True)
+    source = Column(String, default="system")  # amazon, shopee, lazada, system
     price = Column(Numeric(10, 2), nullable=False)
     currency = Column(String, default="THB")
     timestamp = Column(DateTime, default=datetime.utcnow)

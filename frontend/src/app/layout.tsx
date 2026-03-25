@@ -21,6 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* eslint-disable-next-line @next/next/no-head-element */}
+        <meta name="impact-site-verification" {...({ value: "2f49fcd3-65ef-4d1b-9e4d-9a3b767c6432" } as any)} />
+      </head>
       <body>
         <AntdRegistry>
           <CurrencyProvider>

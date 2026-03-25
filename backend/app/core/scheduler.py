@@ -2,6 +2,7 @@ import logging
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from app.database import SessionLocal
 from app.services.currency_service import fetch_and_update_rates
+from app.services.price_update_service import run_daily_price_update
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,9 @@ def setup_scheduler():
     
     # Run the currency update job once every day at 1:00 AM
     scheduler.add_job(scheduled_currency_update, 'cron', hour=1, minute=0, id='currency_update_job', replace_existing=True)
+    
+    # Run the price update sweep daily at 2:00 AM
+    scheduler.add_job(run_daily_price_update, 'cron', hour=2, minute=0, id='price_update_job', replace_existing=True)
     
     scheduler.start()
     logger.info("Background scheduler started.")

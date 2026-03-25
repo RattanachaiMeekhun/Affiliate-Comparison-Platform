@@ -90,7 +90,14 @@ export default function ProductCard({ product, selectedCurrency, rates }: Produc
         <div className={styles.productInfo}>
           <h3 className={styles.productName}>{product.name}</h3>
           <div className={styles.productPrice}>
-            {bestPrice > 0 ? (
+            {product.price_min && product.price_max && Number(product.price_min) > 0 ? (
+              <span className={styles.priceValue}>
+                {Number(product.price_min) === Number(product.price_max)
+                  ? formatPrice(product.price_min, product.currency || 'THB', selectedCurrency, rates)
+                  : `${formatPrice(product.price_min, product.currency || 'THB', selectedCurrency, rates)} ~ ${formatPrice(product.price_max, product.currency || 'THB', selectedCurrency, rates)}`
+                }
+              </span>
+            ) : bestPrice > 0 ? (
               <span className={styles.priceValue}>
                 {formatPrice(bestPrice, product.currency || 'THB', selectedCurrency, rates)}
               </span>

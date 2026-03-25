@@ -6,6 +6,7 @@ export interface ComponentItem {
   name: string;
   price: number;
   icon_key: string;
+  affiliate_url?: string;
 }
 
 export interface SetBuilderRecommendation {

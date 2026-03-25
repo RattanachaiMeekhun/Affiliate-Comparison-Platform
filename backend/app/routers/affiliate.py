@@ -8,6 +8,9 @@ from .. import models, crud, schemas, database
 
 router = APIRouter(prefix="/affiliate", tags=["affiliate"])
 
+# Public router — no HMAC required (browser-initiated redirects)
+public_router = APIRouter(prefix="/affiliate", tags=["affiliate-public"])
+
 
 @router.post("/affiliate-products/", response_model=schemas.AffiliateProduct)
 def create_affiliate_product(
@@ -38,6 +41,17 @@ def redirect_to_affiliate(
     db.commit()
     
     return RedirectResponse(url=aff_product.source_url)
+
+
+@public_router.get("/amazon-search")
+def amazon_search_redirect(q: str):
+    """
+    Directly generates an Amazon affiliate search URL for the given query and redirects.
+    Ensures compliance parameters are always correct.
+    """
+    from app.services import affiliate_service
+    url = affiliate_service.generate_amazon_search_url(q)
+    return RedirectResponse(url=url)
 
 
 class ScrapeMatchRequest(BaseModel):

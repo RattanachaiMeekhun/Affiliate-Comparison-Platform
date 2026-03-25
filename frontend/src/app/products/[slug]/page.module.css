@@ -429,3 +429,58 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Amazon Buy Button */
+.amazonBtn {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px;
+  background: #FF9900;
+  background: linear-gradient(180deg, #FF9900 0%, #E68A00 100%);
+  color: #111;
+  border: 1px solid #A88734;
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: all var(--duration-fast) ease;
+  box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 1px 0 rgba(0,0,0,.08);
+  text-decoration: none;
+}
+
+.amazonBtn:hover {
+  background: linear-gradient(180deg, #FFB74D 0%, #FF9900 100%);
+  border-color: #9c7e31;
+}
+
+.amazonBtn:active {
+  box-shadow: 0 1px 3px rgba(0,0,0,.2) inset;
+}
+
+.sidebarAmazonBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background: #FF9900;
+  color: #111;
+  border: 1px solid #A88734;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 12px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.sidebarAmazonBtn:hover {
+  background: #f7dfa1 !important;
+  border-color: #a88734;
+}

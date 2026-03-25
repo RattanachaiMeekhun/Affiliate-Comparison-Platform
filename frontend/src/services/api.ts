@@ -43,7 +43,10 @@ export interface Product {
   price: string | number | null;
   currency: string;
   image_url: string | null;
+  affiliate_url?: string | null;
   affiliate_products: AffiliateProduct[];
+  price_min?: string | number | null;
+  price_max?: string | number | null;
 }
 
 export async function fetchCategories(): Promise<Category[]> {

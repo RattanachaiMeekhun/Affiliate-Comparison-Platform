@@ -18,10 +18,10 @@ To move beyond traditional "blog-style" affiliate sites by providing a **Product
 
 ## 🏗 Key Features
 
-- **Smart Aggregator:** Real-time synchronization of product feeds from global marketplaces (Shopee, Lazada, Amazon, and niche partners).
-- **Semantic Matching Engine:** Uses Vector Embeddings to normalize product identities across disparate platforms, ensuring accurate price comparisons.
+- **Smart Aggregator:** Real-time synchronization of product feeds with a focus on Amazon and partner marketplaces.
+- **Semantic Matching Engine:** Uses Vector Embeddings to normalize product identities globally, ensuring accurate price comparisons.
 - **Interactive Comparison:** SEO-optimized, filterable tables designed for high-intent tech buyers.
-- **Value-Driven AI:** Automated analysis of product specifications and historical pricing to highlight "Best Value" choices.
+- **Value-Driven AI:** Automated analysis of product specifications and historical pricing to highlight "Best Value" choices via Amazon Associates.
 
 ## 📁 Repository Structure
 

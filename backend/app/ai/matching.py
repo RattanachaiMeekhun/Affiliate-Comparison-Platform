@@ -62,7 +62,7 @@ class MatchingEngine:
         for cand in candidates:
             # Enhanced prompt for Thai context and technical precision
             prompt = f"""
-            Compare these two tech products from Thai marketplaces (Lazada, Shopee, etc.) 
+            Compare these two tech products from global marketplaces (Amazon, etc.) 
             and decide if they are EXACTLY the same model and variant:
             
             Product A (New): 

@@ -12,8 +12,11 @@ class AffiliateService:
         parsed_url = urllib.parse.urlparse(url)
         query_params = urllib.parse.parse_qs(parsed_url.query)
         
-        # Enforce stacknodes-20 tag
+        # SiteStripe parameters fallback
         query_params['tag'] = [self.amazon_tag]
+        query_params['linkCode'] = ['ll2']
+        query_params['language'] = ['en_US']
+        query_params['ref_'] = ['as_li_ss_tl']
         
         new_query = urllib.parse.urlencode(query_params, doseq=True)
         return urllib.parse.urlunparse(parsed_url._replace(query=new_query))
@@ -25,5 +28,14 @@ class AffiliateService:
         if source_name.lower() == "amazon":
             return self.generate_amazon_affiliate_url(url)
         return url
+
+    def generate_amazon_search_url(self, query: str) -> str:
+        """
+        Generates an Amazon search URL with the affiliate tag.
+        Used as a fallback when a specific product DP link is not available.
+        """
+        encoded_query = urllib.parse.quote(query)
+        base_url = "https://www.amazon.com/s"
+        return f"{base_url}?k={encoded_query}&tag={self.amazon_tag}&linkCode=ll2&language=en_US&ref_=as_li_ss_tl"
 
 affiliate_service = AffiliateService()
