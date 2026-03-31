@@ -3,12 +3,13 @@ import re
 from typing import Dict, Any, Optional
 from app.services.serper_service import SerperService
 from app.services.affiliate_service import affiliate_service
+from app import schemas
 
 class AmazonFeedService:
     def __init__(self, serper_service: SerperService):
         self.serper_service = serper_service
 
-    async def search_amazon_product(self, product_name: str) -> Optional[Dict[str, Any]]:
+    async def search_amazon_product(self, product_name: str, category: str, limit: int = 1) -> Optional[schemas.AmazonSearchResult]:
         """
         Search for a product specifically on Amazon using Serper organic search.
         """
@@ -18,10 +19,10 @@ class AmazonFeedService:
             
         url = "https://google.serper.dev/search"
         payload = {
-            "q": f"site:amazon.com/dp OR site:amazon.com/gp/product {product_name}",
+            "q": f"site:amazon.com {product_name} {category} -case -cover -sleeve -charger",
             "gl": "us",
             "hl": "en",
-            "num": 5
+            "num": limit
         }
         
         try:
@@ -36,10 +37,11 @@ class AmazonFeedService:
                         print(f"Serper error: {response.status}")
         except Exception as e:
             print(f"Failed to search Amazon via Serper: {e}")
+            return None
             
         return None
 
-    def parse_amazon_result(self, search_data: Dict[str, Any], query: str) -> Optional[Dict[str, Any]]:
+    def parse_amazon_result(self, search_data: Dict[str, Any], query: str) -> Optional[schemas.AmazonSearchResult]:
         """
         Parses organic search results to find the best Amazon product link.
         """
@@ -63,18 +65,18 @@ class AmazonFeedService:
                 asin_match = re.search(r'/(?:dp|product)/([A-Z0-9]{10})', link)
                 source_id = asin_match.group(1) if asin_match else "unknown"
 
-                return {
-                    "source_name": "Amazon",
-                    "source_product_id": source_id,
-                    "source_url": affiliate_url,
-                    "price": price,
-                    "currency": "USD",
-                    "raw_data": {
-                        "title": item.get("title"),
-                        "snippet": snippet,
-                        "position": item.get("position")
-                    }
-                }
+                return schemas.AmazonSearchResult(
+                    source_name="Amazon",
+                    source_product_id=source_id,
+                    source_url=affiliate_url,
+                    price=price,
+                    currency="USD",
+                    raw_data=schemas.AmazonRawData(
+                        title=item.get("title"),
+                        snippet=snippet,
+                        position=item.get("position")
+                    )
+                )
         return None
 
     async def update_product_feed(self, db_session):
@@ -90,17 +92,17 @@ class AmazonFeedService:
         for product in products:
             has_amazon = any(ap.source_name.lower() == "amazon" for ap in product.affiliate_products)
             if not has_amazon:
-                amazon_data = await self.search_amazon_product(product.name)
+                amazon_data = await self.search_amazon_product(product.name,product.category_name)
                 
                 if amazon_data:
                     ap = AffiliateProduct(
                         product_id=product.id,
-                        source_name=amazon_data["source_name"],
-                        source_product_id=amazon_data["source_product_id"],
-                        source_url=amazon_data["source_url"],
-                        price=amazon_data["price"],
-                        currency=amazon_data["currency"],
-                        raw_data=amazon_data["raw_data"],
+                        source_name=amazon_data.source_name,
+                        source_product_id=amazon_data.source_product_id,
+                        source_url=amazon_data.source_url,
+                        price=amazon_data.price,
+                        currency=amazon_data.currency,
+                        raw_data=amazon_data.raw_data.dict(),
                         last_scraped=datetime.utcnow()
                     )
                     db_session.add(ap)

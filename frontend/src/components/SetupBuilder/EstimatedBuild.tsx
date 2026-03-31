@@ -242,14 +242,9 @@ const EstimatedBuild: React.FC<EstimatedBuildProps> = ({ aiResponse, isLoading, 
 
           <Divider style={{ margin: '24px 0' }} />
 
-          <motion.a
+          <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            href={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/affiliate/amazon-search?q=${encodeURIComponent(
-              aiResponse!.components.map((c) => c.name).join(' ')
-            )}`}
-            target="_blank"
-            rel="noopener noreferrer"
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -265,9 +260,10 @@ const EstimatedBuild: React.FC<EstimatedBuildProps> = ({ aiResponse, isLoading, 
               textDecoration: 'none',
               boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}
+            onClick={() => {}}
           >
-            Shop Full Build on Amazon <ArrowRightOutlined />
-          </motion.a>
+            Shop Full Build <ArrowRightOutlined />
+          </motion.button>
         </>
       )}
 

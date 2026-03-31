@@ -1,7 +1,5 @@
 from app.config import settings
 from supabase import create_client
-from langchain_openai import OpenAIEmbeddings
-
 
 class VectorService:
     """Handles embedding generation and pgvector similarity search via Supabase RPC."""

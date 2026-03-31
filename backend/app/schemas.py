@@ -152,3 +152,18 @@ class UserResponse(UserBase):
     class Config:
         from_attributes = True
 
+
+class AmazonRawData(BaseModel):
+    title: Optional[str] = None
+    snippet: Optional[str] = None
+    position: Optional[int] = None
+
+
+class AmazonSearchResult(BaseModel):
+    source_name: str = "Amazon"
+    source_product_id: str
+    source_url: str
+    price: Decimal
+    currency: str = "USD"
+    raw_data: AmazonRawData
+
