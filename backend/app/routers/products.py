@@ -551,3 +551,98 @@ async def update_product_images(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/import-shopee")
+async def import_shopee(
+    request: schemas.ShopeeImportRequest, db: Session = Depends(database.get_db)
+):
+    """
+    Import products from Shopee JSON format.
+    Handles duplication by source_product_id (itemid).
+    Links to existing products by name slug if available.
+    """
+    success_count = 0
+    skip_count = 0
+    error_count = 0
+    results = []
+
+    for item in request.products:
+        try:
+            # 1. Check if this Shopee listing already exists
+            existing_aff = (
+                db.query(models.AffiliateProduct)
+                .filter(
+                    models.AffiliateProduct.source_name == "Shopee",
+                    models.AffiliateProduct.source_product_id == item.itemid,
+                )
+                .first()
+            )
+
+            if existing_aff:
+                skip_count += 1
+                continue
+
+            # 2. Find or create the main Product
+            name_slug = slugify(item.title)
+            db_product = crud.get_product_by_slug(db, name_slug)
+
+            if not db_product:
+                # Create new base product
+                db_product = models.Product(
+                    name=item.title,
+                    slug=name_slug,
+                    description=item.description,
+                    category_id=item.category_id,
+                    price=item.price,  # Use original price as baseline
+                    image_url=item.image_link,
+                )
+                db.add(db_product)
+                db.flush()  # Get ID
+
+            # 3. Create the Affiliate Listing
+            raw_data = {
+                "itemid": item.itemid,
+                "shopid": item.shopid,
+                "sale_price": str(item.sale_price) if item.sale_price else None,
+                "global_category3": item.global_category3,
+                "global_brand": item.global_brand,
+            }
+
+            db_aff = models.AffiliateProduct(
+                product_id=db_product.id,
+                source_name="Shopee",
+                source_product_id=item.itemid,
+                source_url=item.product_link,
+                price=item.sale_price or item.price,  # Use sale price if available for the listing
+                image_url=item.image_link,
+                raw_data=raw_data,
+            )
+            db.add(db_aff)
+
+            # 4. Add to Price History
+            history = models.PriceHistory(
+                product_id=db_product.id,
+                source="Shopee",
+                price=item.sale_price or item.price,
+                currency="THB",
+            )
+            db.add(history)
+
+            success_count += 1
+            results.append({"itemid": item.itemid, "status": "imported"})
+
+        except Exception as e:
+            print(f"Failed to import Shopee item {item.itemid}: {e}")
+            error_count += 1
+            db.rollback()
+
+    db.commit()
+
+    return {
+        "status": "completed",
+        "imported": success_count,
+        "skipped": skip_count,
+        "errors": error_count,
+        "results": results,
+    }

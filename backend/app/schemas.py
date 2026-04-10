@@ -15,7 +15,6 @@ class CategoryBase(BaseModel):
     seo_content: Optional[str] = None
     icon_url: Optional[str] = None
     sort_order: int = 0
-    trending_score: float = 0.0
 
 
 class CategoryCreate(CategoryBase):
@@ -166,4 +165,22 @@ class AmazonSearchResult(BaseModel):
     price: Decimal
     currency: str = "USD"
     raw_data: AmazonRawData
+
+
+class ShopeeProductImport(BaseModel):
+    itemid: str
+    shopid: str
+    title: str
+    description: Optional[str] = None
+    price: Decimal
+    sale_price: Optional[Decimal] = None
+    image_link: str
+    product_link: str
+    global_category3: Optional[str] = None
+    global_brand: Optional[str] = None
+    category_id: Optional[UUID4] = None
+
+
+class ShopeeImportRequest(BaseModel):
+    products: List[ShopeeProductImport]
 

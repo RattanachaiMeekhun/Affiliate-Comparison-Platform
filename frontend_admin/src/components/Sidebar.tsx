@@ -1,39 +1,41 @@
 import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Users, 
   Settings, 
   PieChart, 
   LogOut, 
-  Menu,
-  ChevronLeft,
-  ChevronRight,
-  HelpCircle,
-  FileText
+  FileText,
+  ShoppingBag,
+  HelpCircle
 } from 'lucide-react';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
   label: string;
+  to: string;
   active?: boolean;
 }
 
-const SidebarItem = ({ icon, label, active }: SidebarItemProps) => {
+const SidebarItem = ({ icon, label, to, active }: SidebarItemProps) => {
   return (
     <li>
-      <a className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
+      <Link to={to} className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
         active 
           ? 'bg-primary text-primary-content shadow-lg shadow-primary/20' 
           : 'hover:bg-base-200 text-base-content/70 hover:text-primary'
       }`}>
         <span className="w-5 h-5">{icon}</span>
         <span className="font-medium">{label}</span>
-      </a>
+      </Link>
     </li>
   );
 };
 
 export const Sidebar = () => {
+  const location = useLocation();
+
   return (
     <aside className="w-72 h-screen bg-base-100 border-r border-base-200 flex flex-col sticky top-0">
       <div className="p-6 mb-8 mt-2">
@@ -51,16 +53,27 @@ export const Sidebar = () => {
       <nav className="flex-1 px-4 overflow-y-auto">
         <p className="text-xs font-semibold text-base-content/40 uppercase tracking-widest mb-4 px-4">Management</p>
         <ul className="space-y-1 mb-8">
-          <SidebarItem icon={<LayoutDashboard size={20} />} label="Dashboard" active />
-          <SidebarItem icon={<Users size={20} />} label="Affiliates" />
-          <SidebarItem icon={<PieChart size={20} />} label="Analytics" />
-          <SidebarItem icon={<FileText size={20} />} label="Reports" />
+          <SidebarItem 
+            icon={<LayoutDashboard size={20} />} 
+            label="Dashboard" 
+            to="/" 
+            active={location.pathname === '/'} 
+          />
+          <SidebarItem 
+            icon={<ShoppingBag size={20} />} 
+            label="Product Import" 
+            to="/products/import" 
+            active={location.pathname === '/products/import'} 
+          />
+          <SidebarItem icon={<Users size={20} />} label="Affiliates" to="/affiliates" />
+          <SidebarItem icon={<PieChart size={20} />} label="Analytics" to="/analytics" />
+          <SidebarItem icon={<FileText size={20} />} label="Reports" to="/reports" />
         </ul>
 
         <p className="text-xs font-semibold text-base-content/40 uppercase tracking-widest mb-4 px-4">System Settings</p>
         <ul className="space-y-1">
-          <SidebarItem icon={<Settings size={20} />} label="Settings" />
-          <SidebarItem icon={<HelpCircle size={20} />} label="Support" />
+          <SidebarItem icon={<Settings size={20} />} label="Settings" to="/settings" />
+          <SidebarItem icon={<HelpCircle size={20} />} label="Support" to="/support" />
         </ul>
       </nav>
 

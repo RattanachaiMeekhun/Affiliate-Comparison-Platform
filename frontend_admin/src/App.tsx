@@ -1,10 +1,10 @@
 import { AdminLayout } from './layouts/AdminLayout';
-import { Dashboard } from './pages/Dashboard';
+import { AppRouter } from './routers/AppRouter';
 
 function App() {
   return (
     <AdminLayout>
-      <Dashboard />
+      <AppRouter />
     </AdminLayout>
   );
 }
