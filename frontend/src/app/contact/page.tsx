@@ -2,8 +2,14 @@ import { Metadata } from 'next';
 import { MailOutlined } from '@ant-design/icons';
 
 export const metadata: Metadata = {
-  title: 'Contact Us - stacknodes',
-  description: 'Get in touch with the stacknodes team.',
+  title: 'Contact Us | stacknodes',
+  description: 'Get in touch with the stacknodes team for support, partnerships, or feedback.',
+  alternates: { canonical: '/contact' },
+  openGraph: {
+    title: 'Contact stacknodes',
+    description: 'Reach out to the stacknodes team for support or business inquiries.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Contact stacknodes' }],
+  },
 };
 
 export default function ContactPage() {

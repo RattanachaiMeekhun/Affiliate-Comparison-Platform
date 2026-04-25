@@ -1,8 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service - stacknodes',
-  description: 'Terms of Service for using stacknodes.',
+  title: 'Terms of Service | stacknodes',
+  description: 'Terms of Service for using stacknodes.net — your rights and responsibilities when using our hardware comparison platform.',
+  alternates: { canonical: '/terms' },
+  openGraph: {
+    title: 'Terms of Service | stacknodes',
+    description: 'Terms of Service for stacknodes.net.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'stacknodes Terms of Service' }],
+  },
 };
 
 export default function TermsPage() {

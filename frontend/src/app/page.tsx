@@ -34,8 +34,6 @@ export default function HomePage() {
           fetchProducts(undefined, 0, ITEMS_PER_PAGE),
           fetchCategories(),
         ]);
-        console.log({ cats });
-
         setProducts(prods);
         setCategories(cats);
         setHasMore(prods.length === ITEMS_PER_PAGE);

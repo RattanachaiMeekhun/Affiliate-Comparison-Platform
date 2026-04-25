@@ -27,8 +27,14 @@ export const metadata: Metadata = {
     'hardware comparison',
   ],
   metadataBase: new URL('https://stacknodes.net'),
-  alternates: {
-    canonical: '/',
+  twitter: {
+    card: 'summary_large_image',
+    site: '@stacknodes',
+    creator: '@stacknodes',
+    title: 'stacknodes — AI-Powered Hardware Deals for Professionals',
+    description:
+      'Find the best hardware deals for data science, video editing, and 3D rendering workflows. AI-curated comparisons across top retailers.',
+    images: ['/og-image.png'],
   },
   openGraph: {
     type: 'website',
@@ -43,6 +49,12 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: 'stacknodes — AI-Powered Hardware Deals',
+      },
+      {
+        url: '/images/pinterest-pin.jpg',
+        width: 1000,
+        height: 1500,
+        alt: 'stacknodes — Pinterest Pin',
       },
     ],
   },
@@ -64,6 +76,7 @@ export const metadata: Metadata = {
   },
   other: {
     'pinterest-rich-pin': 'true',
+    'pinterest': 'nohover',
   },
 };
 
@@ -75,7 +88,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {/* Website Schema (Sitelinks search box) */}
+        {/* Website Schema */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -85,11 +98,6 @@ export default function RootLayout({
               name: 'stacknodes',
               url: 'https://stacknodes.net/',
               description: 'AI-Powered Hardware Deals for Professionals',
-              potentialAction: {
-                '@type': 'SearchAction',
-                target: 'https://stacknodes.net/search?q={search_term_string}',
-                'query-input': 'required name=search_term_string',
-              },
             }),
           }}
         />

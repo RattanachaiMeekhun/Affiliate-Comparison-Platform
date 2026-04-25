@@ -21,13 +21,43 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? Object.entries(product.specs).slice(0, 3).map(([k, v]) => `${k}: ${v}`).join(', ')
     : '';
 
+  const bestPrice =
+    product.affiliate_products.length > 0
+      ? Math.min(
+          ...product.affiliate_products.map((p) => Number(p.price) || 0).filter((p) => p > 0)
+        )
+      : Number(product.price) || 0;
+
+  const brand = product.specs?.brand || 'stacknodes';
+  const category = 'Computer Hardware'; // Default category prefix
+
   return {
     title: `${product.name} | Professional Hardware Deals`,
     description: `Compare prices and specs for ${product.name}. ${specsStr}. AI-powered insights for professional workflows.`,
+    alternates: {
+      canonical: `/products/${product.slug}`,
+    },
     openGraph: {
       title: `${product.name} | stacknodes`,
       description: product.description || `Find the best deals for ${product.name} on stacknodes.`,
-      images: product.image_url ? [product.image_url] : [],
+      images: product.image_url
+        ? [{ url: product.image_url, alt: product.name }]
+        : [{ url: '/og-image.png', width: 1200, height: 630, alt: 'stacknodes' }],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: `${product.name} | stacknodes`,
+      description: product.description || `Find the best deals for ${product.name} on stacknodes.`,
+      images: product.image_url ? [product.image_url] : ['/og-image.png'],
+    },
+    other: {
+      'og:type': 'product',
+      'product:price:amount': bestPrice > 0 ? bestPrice.toString() : '0',
+      'product:price:currency': product.currency || 'USD',
+      'product:availability': bestPrice > 0 ? 'in stock' : 'out of stock',
+      'product:condition': 'new',
+      'product:brand': brand,
+      'product:category': category,
     },
   };
 }

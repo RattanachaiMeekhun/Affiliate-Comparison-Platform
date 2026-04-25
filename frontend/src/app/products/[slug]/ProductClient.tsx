@@ -316,7 +316,13 @@ export default function ProductClient({ product, category }: ProductClientProps)
               url: `https://stacknodes.net/products/${product.slug}`,
               priceCurrency: product.currency || 'USD',
               price: bestPrice,
+              itemCondition: 'https://schema.org/NewCondition',
               availability: bestPrice > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+              seller: {
+                '@type': 'Organization',
+                name: 'stacknodes',
+                url: 'https://stacknodes.net',
+              },
             },
           }),
         }}

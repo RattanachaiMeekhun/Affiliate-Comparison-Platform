@@ -21,10 +21,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${category.name} Hardware Deals | stacknodes`,
     description: category.description || `Find the best hardware deals for ${category.name} workflows. AI-powered benchmarks and professional comparisons.`,
+    alternates: {
+      canonical: `/category/${category.slug}`,
+    },
     openGraph: {
       title: `${category.name} Deals | stacknodes`,
       description: `Browse curated ${category.name} hardware deals for professional workflows.`,
-      images: category.icon_url ? [category.icon_url] : [],
+      images: [
+        {
+          url: category.icon_url || '/og-image.png',
+          width: 1200,
+          height: 630,
+          alt: `${category.name} — stacknodes`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image' as const,
+      title: `${category.name} Hardware Deals | stacknodes`,
+      description: `Browse curated ${category.name} hardware deals for professional workflows.`,
+      images: [category.icon_url || '/og-image.png'],
     },
   };
 }
@@ -44,5 +60,23 @@ export default async function CategoryPage({ params }: Props) {
     notFound();
   }
 
-  return <CategoryClient category={category} products={products} />;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://stacknodes.net/' },
+              { '@type': 'ListItem', position: 2, name: 'Categories', item: 'https://stacknodes.net/category' },
+              { '@type': 'ListItem', position: 3, name: category.name, item: `https://stacknodes.net/category/${category.slug}` },
+            ],
+          }),
+        }}
+      />
+      <CategoryClient category={category} products={products} />
+    </>
+  );
 }

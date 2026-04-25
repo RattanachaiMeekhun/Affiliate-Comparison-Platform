@@ -2,8 +2,20 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'About Us - stacknodes',
-  description: 'About stacknodes and our mission to simplify hardware comparison.',
+  title: 'About Us | stacknodes',
+  description: 'Learn about stacknodes — our mission to simplify hardware comparison with AI-powered insights for data scientists, video editors, and 3D artists.',
+  alternates: { canonical: '/about' },
+  openGraph: {
+    title: 'About stacknodes — AI-Powered Hardware Comparison',
+    description: 'Learn how stacknodes uses AI to simplify hardware selection for professionals.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'About stacknodes' }],
+  },
+  twitter: {
+    card: 'summary_large_image' as const,
+    title: 'About stacknodes',
+    description: 'Learn how stacknodes uses AI to simplify hardware selection for professionals.',
+    images: ['/og-image.png'],
+  },
 };
 
 export default function AboutPage() {

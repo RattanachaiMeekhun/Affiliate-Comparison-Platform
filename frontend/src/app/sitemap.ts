@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [products, categories] = await Promise.all([fetchProducts(), fetchCategories()]);
+    const [products, categories] = await Promise.all([fetchProducts(undefined, 0, 2000), fetchCategories()]);
 
     const productUrls = products.map((product) => ({
       url: `${baseUrl}/products/${product.slug}`,

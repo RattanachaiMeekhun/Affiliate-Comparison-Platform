@@ -1,8 +1,15 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy - stacknodes',
-  description: 'Privacy Policy and data collection guidelines for stacknodes.',
+  title: 'Privacy Policy | stacknodes',
+  description: 'Privacy Policy for stacknodes.net — how we collect, use, and protect your data.',
+  alternates: { canonical: '/privacy' },
+  robots: { index: true, follow: true },
+  openGraph: {
+    title: 'Privacy Policy | stacknodes',
+    description: 'Privacy Policy for stacknodes.net.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'stacknodes Privacy Policy' }],
+  },
 };
 
 export default function PrivacyPage() {

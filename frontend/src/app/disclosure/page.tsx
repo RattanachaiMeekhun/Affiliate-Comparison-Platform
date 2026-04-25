@@ -1,8 +1,14 @@
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Affiliate Disclosure - stacknodes',
-  description: 'Affiliate Disclosure for stacknodes.net.',
+  title: 'Affiliate Disclosure | stacknodes',
+  description: 'stacknodes is an affiliate-supported platform. We earn commissions from qualifying purchases at no extra cost to you.',
+  alternates: { canonical: '/disclosure' },
+  openGraph: {
+    title: 'Affiliate Disclosure | stacknodes',
+    description: 'Learn how stacknodes earns commissions to support our free hardware comparison service.',
+    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'stacknodes Affiliate Disclosure' }],
+  },
 };
 
 export default function DisclosurePage() {
