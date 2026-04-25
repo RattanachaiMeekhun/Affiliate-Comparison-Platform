@@ -5,7 +5,7 @@ const cache = new Map<string, { data: any; expiry: number }>();
 const CACHE_TTL = 300000; // 5 minutes
 
 const api = axios.create({
-  baseURL: 'http://localhost:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
   headers: {
     'Content-Type': 'application/json',
   },
