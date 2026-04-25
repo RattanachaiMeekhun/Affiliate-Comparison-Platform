@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 import time
+from typing import Optional
 from fastapi import Request, HTTPException, Header
 from app.config import settings
 
@@ -9,18 +10,21 @@ HMAC_TIMESTAMP_TOLERANCE_SECONDS = 300
 
 async def verify_hmac_signature(
     request: Request,
-    x_timestamp: str = Header(..., description="UNIX timestamp of the request in seconds"),
-    x_signature: str = Header(..., description="HMAC-SHA256 signature calculated over the request body and timestamp")
+    x_timestamp: Optional[str] = Header(None, alias="X-Timestamp", description="UNIX timestamp of the request in seconds"),
+    x_signature: Optional[str] = Header(None, alias="X-Signature", description="HMAC-SHA256 signature calculated over the request body and timestamp")
 ):
     """
     Dependency to verify the HMAC signature of incoming requests.
     Validates that the request was signed by a party holding the HMAC_SECRET_KEY,
     and checks that the signature hasn't expired.
     """
-    if settings.DEBUG:
+    # 0. Skip verification in DEBUG mode or for health checks
+    if settings.DEBUG or request.method == "OPTIONS":
         return
-    if request.method == "OPTIONS":
-        return
+
+    if not x_timestamp or not x_signature:
+        raise HTTPException(status_code=401, detail="HMAC headers missing")
+
     if not settings.HMAC_SECRET_KEY:
         # If the key is not set, we can either bypass verification (in dev) or fail securely.
         # For production readiness, it's safer to fail if the HMAC feature is expected but unconfigured.

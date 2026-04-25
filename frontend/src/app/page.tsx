@@ -11,6 +11,9 @@ import styles from './page.module.css';
 import Hero from '@/components/Home/Hero';
 import CategorySection from '@/components/Home/CategorySection';
 import ProductSection from '@/components/Home/ProductSection';
+import WhySection from '@/components/Home/WhySection';
+import HowItWorks from '@/components/Home/HowItWorks';
+import FaqSection from '@/components/Home/FaqSection';
 
 import { useState, useEffect } from 'react';
 
@@ -108,6 +111,10 @@ export default function HomePage() {
           onTabChange={handleTabClick}
           onLoadMore={() => setVisibleCount((prev) => prev + 8)}
         />
+
+        <WhySection />
+        <HowItWorks />
+        <FaqSection />
       </div>
     </AnimatedPage>
   );

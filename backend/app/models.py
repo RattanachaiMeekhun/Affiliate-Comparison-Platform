@@ -52,6 +52,8 @@ class Product(Base):
     currency = Column(String, default="THB")
     image_url = Column(String)  # Main product image
     embedding = Column(Vector(1536), nullable=True)  # pgvector semantic search
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     category = relationship("Category", back_populates="products")
     affiliate_products = relationship("AffiliateProduct", back_populates="product")
     price_history = relationship("PriceHistory", back_populates="product", cascade="all, delete-orphan")

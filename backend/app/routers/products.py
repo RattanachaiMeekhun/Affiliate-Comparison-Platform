@@ -1,5 +1,5 @@
 from app.services import SerperService, affiliate_service
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from typing import List
 from .. import crud, schemas, database, models
@@ -9,6 +9,7 @@ from app.ai.helper import _parse_json_response
 from slugify import slugify
 from pydantic import BaseModel
 import uuid
+from datetime import datetime
 import json
 import asyncio
 from langchain_core.messages import SystemMessage
@@ -16,6 +17,68 @@ from app.ai.llm import LLMProvider
 from app.services.storage_service import StorageService
 
 router = APIRouter(prefix="/products", tags=["products"])
+
+
+async def process_product_ai_task(product_id: uuid.UUID):
+    """
+    Background task to generate AI insights, embeddings, and find Amazon links.
+    This runs after the import request is finished to avoid blocking.
+    """
+    from app.database import SessionLocal
+    from ..services.insight_service import (
+        generate_product_insight,
+        generate_product_embedding,
+        build_product_search_text,
+    )
+    from app.services.amazon_feed_service import AmazonFeedService
+    from app.services.serper_service import SerperService
+
+    db = SessionLocal()
+    try:
+        # 1. Fetch the product
+        product = crud.get_product(db, product_id)
+        if not product:
+            return
+
+        # 2. Generate Insight
+        insight = await generate_product_insight(product.name, product.description or "")
+        if insight:
+            crud.update_product_insight(db, product_id, insight)
+            # Refresh product to get updated insight
+            db.refresh(product)
+
+        # 3. Generate Embedding (Name + Desc + Specs + Insight)
+        search_text = build_product_search_text(
+            product.name, 
+            product.description or "", 
+            product.specs, 
+            product.ai_insight
+        )
+        embedding = await generate_product_embedding(search_text)
+        if embedding:
+            crud.update_product_embedding(db, product_id, embedding)
+
+        # 4. Amazon Link Matching (Skip quietly if not found)
+        try:
+            serper = SerperService()
+            amazon_service = AmazonFeedService(serper)
+            await amazon_service.update_single_product_amazon_feed(db, product_id)
+        except Exception as e:
+            print(f"Background Amazon search skipped for {product_id}: {e}")
+
+    except Exception as e:
+        print(f"Error in background AI task for {product_id}: {e}")
+    finally:
+        db.close()
+
+async def process_imported_products_pipeline(product_ids: List[uuid.UUID]):
+    """
+    Sequentially processes a list of products in the background.
+    """
+    for pid in product_ids:
+        await process_product_ai_task(pid)
+        # Minor sleep to prevent rapid-fire API calls
+        await asyncio.sleep(0.5)
 
 
 @router.get("/", response_model=List[schemas.Product])
@@ -555,52 +618,107 @@ async def update_product_images(
 
 @router.post("/import-shopee")
 async def import_shopee(
-    request: schemas.ShopeeImportRequest, db: Session = Depends(database.get_db)
+    request: schemas.ShopeeImportRequest, 
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(database.get_db)
 ):
     """
     Import products from Shopee JSON format.
     Handles duplication by source_product_id (itemid).
-    Links to existing products by name slug if available.
+    Links to existing products by name slug OR semantic matching if titles differ.
     """
+    from app.services.insight_service import (
+        clean_product_title, 
+        generate_product_embedding,
+        build_product_search_text
+    )
+    
     success_count = 0
     skip_count = 0
     error_count = 0
     results = []
-
+    successful_product_ids = []
+    has_batch_error = False
+    
+    # 1. In-memory Batch Filtering (deduplicate within the upload)
+    unique_items = []
+    seen_batch_itemids = set()
     for item in request.products:
-        try:
-            # 1. Check if this Shopee listing already exists
+        if item.itemid not in seen_batch_itemids:
+            unique_items.append(item)
+            seen_batch_itemids.add(item.itemid)
+        else:
+            skip_count += 1
+            results.append({"itemid": item.itemid, "status": "skipped_batch_duplicate"})
+
+    for item in unique_items:
+        try:            
+            # 2. Check if this Shopee listing already exists in DB
             existing_aff = (
                 db.query(models.AffiliateProduct)
                 .filter(
                     models.AffiliateProduct.source_name == "Shopee",
-                    models.AffiliateProduct.source_product_id == item.itemid,
+                    models.AffiliateProduct.source_product_id == str(item.itemid),
                 )
                 .first()
             )
 
             if existing_aff:
-                skip_count += 1
+                new_price = item.sale_price or item.price
+                # Update price if changed
+                if float(existing_aff.price) != float(new_price):
+                    existing_aff.price = new_price
+                    existing_aff.last_scraped = datetime.utcnow()
+                    
+                    # Also log to PriceHistory
+                    crud.upsert_price_history(
+                        db=db,
+                        product_id=existing_aff.product_id,
+                        price=float(new_price),
+                        currency=existing_aff.currency,
+                        source="shopee"
+                    )
+                    
+                    results.append({"itemid": item.itemid, "status": "updated_price"})
+                    success_count += 1
+                else:
+                    results.append({"itemid": item.itemid, "status": "skipped"})
+                    skip_count += 1
                 continue
 
-            # 2. Find or create the main Product
-            name_slug = slugify(item.title)
+            # 3. Find or create the main Product
+            clean_title = await clean_product_title(item.title)
+            name_slug = slugify(clean_title)
+            
+            # Strategy A: Exact Slug Match
             db_product = crud.get_product_by_slug(db, name_slug)
 
+            # Strategy B: Semantic Search (if no slug match)
             if not db_product:
-                # Create new base product
-                db_product = models.Product(
-                    name=item.title,
-                    slug=name_slug,
-                    description=item.description,
-                    category_id=item.category_id,
-                    price=item.price,  # Use original price as baseline
-                    image_url=item.image_link,
-                )
-                db.add(db_product)
-                db.flush()  # Get ID
+                # Generate embedding for the new product title/description
+                search_text = build_product_search_text(clean_title, item.description, None, None)
+                new_embedding = await generate_product_embedding(search_text)
+                
+                # Check for similar products in DB (threshold 0.15 = ~85% similarity)
+                db_product = crud.get_similar_product(db, new_embedding, threshold=0.15)
+                
+                if db_product:
+                    print(f"🔍 Semantic Match: '{clean_title}' matched existing product '{db_product.name}' (linking)")
 
-            # 3. Create the Affiliate Listing
+            if not db_product:
+                # Create new product
+                new_product_data = {
+                    "name": clean_title,
+                    "slug": name_slug,
+                    "description": item.description,
+                    "category_id": item.category_id,
+                    "price": float(item.price),
+                    "image_url": item.image_link,
+                }
+                db_product = crud.create_product(db, schemas.ProductCreate(**new_product_data))
+                successful_product_ids.append(db_product.id)
+
+            # 4. Create the Affiliate Listing
             raw_data = {
                 "itemid": item.itemid,
                 "shopid": item.shopid,
@@ -609,38 +727,51 @@ async def import_shopee(
                 "global_brand": item.global_brand,
             }
 
-            db_aff = models.AffiliateProduct(
+            new_aff = models.AffiliateProduct(
                 product_id=db_product.id,
                 source_name="Shopee",
-                source_product_id=item.itemid,
+                source_product_id=str(item.itemid),
                 source_url=item.product_link,
-                price=item.sale_price or item.price,  # Use sale price if available for the listing
+                price=float(item.sale_price or item.price),
                 image_url=item.image_link,
                 raw_data=raw_data,
+                last_scraped=datetime.utcnow()
             )
-            db.add(db_aff)
-
-            # 4. Add to Price History
-            history = models.PriceHistory(
+            db.add(new_aff)
+            
+            # Initial Price History
+            crud.upsert_price_history(
+                db=db,
                 product_id=db_product.id,
-                source="Shopee",
-                price=item.sale_price or item.price,
-                currency="THB",
+                price=float(new_aff.price),
+                currency=new_aff.currency,
+                source="shopee"
             )
-            db.add(history)
 
+            results.append({"itemid": item.itemid, "status": "imported", "product_id": str(db_product.id)})
             success_count += 1
-            results.append({"itemid": item.itemid, "status": "imported"})
 
         except Exception as e:
-            print(f"Failed to import Shopee item {item.itemid}: {e}")
+            print(f"Failed to process Shopee item {item.itemid}: {e}")
             error_count += 1
-            db.rollback()
+            has_batch_error = True
 
-    db.commit()
+    # 5. Commit changes
+    try:
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Database commit failed: {e}")
+        has_batch_error = True
+
+    # 6. Trigger Background tasks ONLY if no batch errors
+    if not has_batch_error and successful_product_ids:
+        print(f"🚀 Triggering background pipeline for {len(successful_product_ids)} products")
+        background_tasks.add_task(process_imported_products_pipeline, successful_product_ids)
 
     return {
         "status": "completed",
+        "has_batch_error": has_batch_error,
         "imported": success_count,
         "skipped": skip_count,
         "errors": error_count,

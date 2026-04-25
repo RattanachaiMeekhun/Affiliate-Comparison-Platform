@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { PlusOutlined, CheckOutlined } from '@ant-design/icons';
 import styles from '@/app/page.module.css';
@@ -22,13 +23,11 @@ export default function ProductCard({ product, selectedCurrency, rates }: Produc
   const bestPrice =
     product.affiliate_products.length > 0
       ? Math.min(
-          ...product.affiliate_products
-            .map((p) => Number(p.price) || 0)
-            .filter((p) => p > 0)
+          ...product.affiliate_products.map((p) => Number(p.price) || 0).filter((p) => p > 0)
         )
       : Number(product.price) || 0;
 
-  const imgUrl = product.image_url || '/placeholder.png';
+  const imgUrl = product.image_url || '/no-image.png';
 
   const handleCompareClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -78,13 +77,13 @@ export default function ProductCard({ product, selectedCurrency, rates }: Produc
           {isCompared ? <CheckOutlined /> : <PlusOutlined />}
         </button>
         <div className={styles.productImage}>
-          <img
+          <Image
             src={imgUrl}
-            alt={product.name}
-            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-            onError={(e) => {
-              e.currentTarget.src = '/no-image.png';
-            }}
+            alt={`${product.name} - ${product.category_name || 'Hardware'}`}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            style={{ objectFit: 'contain' }}
+            priority={false}
           />
         </div>
         <div className={styles.productInfo}>
@@ -93,9 +92,13 @@ export default function ProductCard({ product, selectedCurrency, rates }: Produc
             {product.price_min && product.price_max && Number(product.price_min) > 0 ? (
               <span className={styles.priceValue}>
                 {Number(product.price_min) === Number(product.price_max)
-                  ? formatPrice(product.price_min, product.currency || 'THB', selectedCurrency, rates)
-                  : `${formatPrice(product.price_min, product.currency || 'THB', selectedCurrency, rates)} ~ ${formatPrice(product.price_max, product.currency || 'THB', selectedCurrency, rates)}`
-                }
+                  ? formatPrice(
+                      product.price_min,
+                      product.currency || 'THB',
+                      selectedCurrency,
+                      rates
+                    )
+                  : `${formatPrice(product.price_min, product.currency || 'THB', selectedCurrency, rates)} ~ ${formatPrice(product.price_max, product.currency || 'THB', selectedCurrency, rates)}`}
               </span>
             ) : bestPrice > 0 ? (
               <span className={styles.priceValue}>

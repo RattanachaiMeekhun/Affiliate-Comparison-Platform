@@ -83,32 +83,49 @@ class AmazonFeedService:
         """
         Iterates over products to find and add missing Amazon affiliate links.
         """
-        from app.models import Product, AffiliateProduct
-        from datetime import datetime
+        from app.models import Product
         
         products = db_session.query(Product).all()
         updated_count = 0
         
         for product in products:
-            has_amazon = any(ap.source_name.lower() == "amazon" for ap in product.affiliate_products)
-            if not has_amazon:
-                amazon_data = await self.search_amazon_product(product.name,product.category_name)
-                
-                if amazon_data:
-                    ap = AffiliateProduct(
-                        product_id=product.id,
-                        source_name=amazon_data.source_name,
-                        source_product_id=amazon_data.source_product_id,
-                        source_url=amazon_data.source_url,
-                        price=amazon_data.price,
-                        currency=amazon_data.currency,
-                        raw_data=amazon_data.raw_data.dict(),
-                        last_scraped=datetime.utcnow()
-                    )
-                    db_session.add(ap)
-                    updated_count += 1
+            if await self.update_single_product_amazon_feed(db_session, product.id):
+                updated_count += 1
                     
         if updated_count > 0:
             db_session.commit()
             
         return updated_count
+
+    async def update_single_product_amazon_feed(self, db_session, product_id) -> bool:
+        """
+        Finds and adds missing Amazon affiliate links for a single product.
+        Returns True if a new link was added.
+        """
+        from app.models import Product, AffiliateProduct
+        from datetime import datetime
+        
+        product = db_session.query(Product).filter(Product.id == product_id).first()
+        if not product:
+            return False
+            
+        has_amazon = any(ap.source_name.lower() == "amazon" for ap in product.affiliate_products)
+        if not has_amazon:
+            # Also search with category name for better results
+            amazon_data = await self.search_amazon_product(product.name, product.category_name or "")
+            
+            if amazon_data:
+                ap = AffiliateProduct(
+                    product_id=product.id,
+                    source_name=amazon_data.source_name,
+                    source_product_id=amazon_data.source_product_id,
+                    source_url=amazon_data.source_url,
+                    price=amazon_data.price,
+                    currency=amazon_data.currency,
+                    raw_data=amazon_data.raw_data.dict(),
+                    last_scraped=datetime.utcnow()
+                )
+                db_session.add(ap)
+                db_session.commit()
+                return True
+        return False

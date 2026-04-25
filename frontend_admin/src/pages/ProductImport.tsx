@@ -39,7 +39,8 @@ export const ProductImport = () => {
   React.useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get('/categories/');
+        const response = await api.get('/categories/?skip=0&limit=100');
+
         setCategories(response.data);
       } catch (err) {
         console.error('Failed to fetch categories:', err);
@@ -73,7 +74,10 @@ export const ProductImport = () => {
       });
 
       // 2. Category Matching Logic
-      const shopeeCat = String(item.global_category3 || item.global_category1 || '').toLowerCase();
+      const shopeeCat = String(
+        item.global_category3 || item.global_category2 || item.global_category1 || ''
+      ).toLowerCase();
+
       const match = categories.find(
         (c) =>
           c.name.toLowerCase() === shopeeCat ||
@@ -98,40 +102,45 @@ export const ProductImport = () => {
     setActiveTab(ready.length > 0 ? 'ready' : 'mismatch');
   };
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const selectedFile = acceptedFiles[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const bstr = e.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const jsonData = XLSX.utils.sheet_to_json<ProductRow>(ws);
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const selectedFile = acceptedFiles[0];
+      if (selectedFile) {
+        setFile(selectedFile);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const ab = e.target?.result;
+          const wb = XLSX.read(ab, { type: 'array', codepage: 65001 });
+          const wsname = wb.SheetNames[0];
+          const ws = wb.Sheets[wsname];
+          const jsonData = XLSX.utils.sheet_to_json<ProductRow>(ws);
 
-        if (jsonData.length > 0) {
-          setData(jsonData);
-          setColumns(Object.keys(jsonData[0]));
+          if (jsonData.length > 0) {
+            setData(jsonData);
+            setColumns(Object.keys(jsonData[0]));
 
-          // Check if it's likely a Shopee file
-          const isShopee =
-            jsonData[0].hasOwnProperty('itemid') || jsonData[0].hasOwnProperty('global_category3');
-          if (isShopee) {
-            validateAndFilterShopee(jsonData);
+            // Check if it's likely a Shopee file
+            const isShopee =
+              jsonData[0].hasOwnProperty('itemid') ||
+              jsonData[0].hasOwnProperty('global_category3');
+            if (isShopee) {
+              validateAndFilterShopee(jsonData);
+            } else {
+              // Reset tiered tables if standard file
+              setReadyItems([]);
+              setMismatchItems([]);
+            }
+            setError(null);
           } else {
-            // Reset tiered tables if standard file
-            setReadyItems([]);
-            setMismatchItems([]);
+            setError('The uploaded file appears to be empty.');
           }
-          setError(null);
-        } else {
-          setError('The uploaded file appears to be empty.');
-        }
-      };
-      reader.readAsBinaryString(selectedFile);
-    }
-  }, []);
+        };
+        reader.readAsArrayBuffer(selectedFile);
+      }
+    },
+    [categories]
+  );
+  console.log({ readyItems });
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -161,27 +170,9 @@ export const ProductImport = () => {
     try {
       if (readyItems.length > 0) {
         // Shopee specific batch import
-        const response = await axios.post('http://localhost:8000/products/import-shopee', {
+        const response = await api.post('/products/import-shopee', {
           products: readyItems,
         });
-        setResult(response.data);
-      } else {
-        // Fallback to standard flow
-        const nameKey =
-          columns.find(
-            (c) =>
-              c.toLowerCase() === 'name' ||
-              c.toLowerCase() === 'product' ||
-              c.toLowerCase() === 'title'
-          ) || columns[0];
-
-        const productNames = data
-          .map((row) => row[nameKey])
-          .filter(Boolean)
-          .join('\n');
-        const response = await axios.post(
-          `http://localhost:8000/products/feed-new-products?products=${encodeURIComponent(productNames)}`
-        );
         setResult(response.data);
       }
     } catch (err: any) {
@@ -190,6 +181,17 @@ export const ProductImport = () => {
       setImporting(false);
     }
   };
+
+  if (categories.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-lg text-base-content/60">Loading categories...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -329,68 +331,66 @@ export const ProductImport = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(activeTab === 'ready' ? readyItems : mismatchItems)
-                    .slice(0, 50)
-                    .map((row, i) => (
-                      <tr key={i} className="hover:bg-base-200/30 transition-colors">
-                        <td>
-                          <div className="avatar">
-                            <div className="mask mask-squircle w-10 h-10">
-                              <img src={row.image_link} alt="product" />
-                            </div>
+                  {(activeTab === 'ready' ? readyItems : mismatchItems).map((row, i) => (
+                    <tr key={i} className="hover:bg-base-200/30 transition-colors">
+                      <td>
+                        <div className="avatar">
+                          <div className="mask mask-squircle w-10 h-10">
+                            <img src={row.image_link} alt="product" />
                           </div>
-                        </td>
-                        <td>
-                          <div className="flex flex-col max-w-xs md:max-w-md">
-                            <span className="font-bold truncate">{row.title}</span>
-                            <span className="text-[10px] opacity-40 uppercase font-mono">
-                              {row.itemid}
-                            </span>
-                          </div>
-                        </td>
-                        <td>
-                          <div
-                            className={`badge badge-sm gap-1 py-3 px-3 uppercase text-[10px] tracking-wider font-bold ${activeTab === 'ready' ? 'badge-success text-white' : 'badge-ghost opacity-60'}`}
-                          >
-                            {activeTab === 'ready' ? (
-                              <Check className="w-3 h-3" />
-                            ) : (
-                              <X className="w-3 h-3" />
-                            )}
-                            {row.category_name}
-                          </div>
-                          {activeTab === 'mismatch' && (
-                            <div className="text-[10px] mt-1 opacity-40">
-                              Original: {row.global_category3}
-                            </div>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex flex-col max-w-xs md:max-w-md">
+                          <span className="font-bold truncate">{row.title}</span>
+                          <span className="text-[10px] opacity-40 uppercase font-mono">
+                            {row.itemid}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <div
+                          className={`badge badge-sm gap-1 py-3 px-3 uppercase text-[10px] tracking-wider font-bold ${activeTab === 'ready' ? 'badge-success text-white' : 'badge-ghost opacity-60'}`}
+                        >
+                          {activeTab === 'ready' ? (
+                            <Check className="w-3 h-3" />
+                          ) : (
+                            <X className="w-3 h-3" />
                           )}
-                        </td>
-                        <td>
-                          <div className="flex flex-col">
-                            <span
-                              className={`${row.sale_price ? 'line-through text-[10px] opacity-40' : 'font-bold'}`}
-                            >
-                              ฿{Number(row.price).toLocaleString()}
-                            </span>
-                            {row.sale_price && (
-                              <span className="text-success font-bold">
-                                ฿{Number(row.sale_price).toLocaleString()}
-                              </span>
-                            )}
+                          {row.category_name}
+                        </div>
+                        {activeTab === 'mismatch' && (
+                          <div className="text-[10px] mt-1 opacity-40">
+                            Original: {row.global_category3}
                           </div>
-                        </td>
-                        <td className="text-right">
-                          <a
-                            href={row.product_link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="btn btn-ghost btn-xs btn-circle"
+                        )}
+                      </td>
+                      <td>
+                        <div className="flex flex-col">
+                          <span
+                            className={`${row.sale_price ? 'line-through text-[10px] opacity-40' : 'font-bold'}`}
                           >
-                            <ExternalLink className="w-4 h-4" />
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
+                            ฿{Number(row.price).toLocaleString()}
+                          </span>
+                          {row.sale_price && (
+                            <span className="text-success font-bold">
+                              ฿{Number(row.sale_price).toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="text-right">
+                        <a
+                          href={row.product_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-ghost btn-xs btn-circle"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

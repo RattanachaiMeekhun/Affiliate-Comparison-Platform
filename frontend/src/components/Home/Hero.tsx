@@ -20,7 +20,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.15, duration: 0.6 }}
         >
-          Curated Deals for Professional Workflows
+          AI-Powered Hardware Deals for Data Scientists, Video Editors & 3D Artists
         </motion.h1>
         <motion.p
           className={styles.heroSubtitle}

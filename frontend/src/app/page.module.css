@@ -221,6 +221,8 @@
   justify-content: center;
   background: var(--bg-secondary);
   padding: 16px;
+  position: relative;
+  overflow: hidden;
 }
 
 .productImage img {

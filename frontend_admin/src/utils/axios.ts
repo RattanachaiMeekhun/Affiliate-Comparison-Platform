@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { env } from './envConfig';
 import CryptoJS from 'crypto-js';
 
 const cache = new Map<string, { data: any; expiry: number }>();
@@ -31,7 +32,7 @@ api.interceptors.request.use(
       }
     }
 
-    const hmacSecret = process.env.NEXT_PUBLIC_HMAC_SECRET_KEY;
+    const hmacSecret = env.HMAC_SECRET_KEY;
 
     if (hmacSecret) {
       const timestamp = Math.floor(Date.now() / 1000).toString();

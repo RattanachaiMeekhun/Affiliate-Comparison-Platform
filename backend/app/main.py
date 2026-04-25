@@ -90,7 +90,7 @@ async def cloudflare_ip_whitelist(request: Request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000","https://stacknodes.net/"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "https://stacknodes.net/"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

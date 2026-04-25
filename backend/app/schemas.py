@@ -1,12 +1,12 @@
-from pydantic import BaseModel, UUID4
-from typing import List, Optional
+from pydantic import BaseModel, UUID4, field_validator
+from typing import List, Optional, Any
 from datetime import datetime
 from decimal import Decimal
 
 
 class CategoryBase(BaseModel):
     name: str
-    slug: Optional[str] = None
+    slug: str
     description: Optional[str] = None
     parent_id: Optional[UUID4] = None
     is_active: bool = True
@@ -14,7 +14,7 @@ class CategoryBase(BaseModel):
     meta_description: Optional[str] = None
     seo_content: Optional[str] = None
     icon_url: Optional[str] = None
-    sort_order: int = 0
+    sort_order: Optional[int] = 0
 
 
 class CategoryCreate(CategoryBase):
@@ -23,8 +23,8 @@ class CategoryCreate(CategoryBase):
 
 class Category(CategoryBase):
     id: UUID4
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -80,6 +80,8 @@ class Product(ProductBase):
     affiliate_products: List[AffiliateProduct] = []
     price_min: Optional[Decimal] = None
     price_max: Optional[Decimal] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
@@ -179,6 +181,11 @@ class ShopeeProductImport(BaseModel):
     global_category3: Optional[str] = None
     global_brand: Optional[str] = None
     category_id: Optional[UUID4] = None
+
+    @field_validator('itemid', 'shopid', mode='before')
+    @classmethod
+    def cast_to_string(cls, v: Any) -> str:
+        return str(v)
 
 
 class ShopeeImportRequest(BaseModel):

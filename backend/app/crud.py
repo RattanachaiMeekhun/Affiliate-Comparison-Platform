@@ -6,6 +6,36 @@ from slugify import slugify
 from typing import List
 
 
+def update_product_insight(db: Session, product_id: uuid.UUID, insight: str):
+    db.query(models.Product).filter(models.Product.id == product_id).update(
+        {"ai_insight": insight}
+    )
+    db.commit()
+
+
+def update_product_embedding(db: Session, product_id: uuid.UUID, embedding: list[float]):
+    db.query(models.Product).filter(models.Product.id == product_id).update(
+        {"embedding": embedding}
+    )
+    db.commit()
+
+
+def get_similar_product(db: Session, embedding: list[float], threshold: float = 0.15):
+    """
+    Find the most semantically similar product using cosine distance.
+    Threshold 0.15 is approximately 85% similarity.
+    """
+    if not embedding:
+        return None
+        
+    return (
+        db.query(models.Product)
+        .filter(models.Product.embedding.cosine_distance(embedding) < threshold)
+        .order_by(models.Product.embedding.cosine_distance(embedding))
+        .first()
+    )
+
+
 def get_product(db: Session, product_id: uuid.UUID):
     return (
         db.query(models.Product)
@@ -40,6 +70,31 @@ def get_products(db: Session, skip: int = 0, limit: int = 100):
         .limit(limit)
         .all()
     )
+
+
+def create_product(db: Session, product: schemas.ProductCreate):
+    product_data = product.dict()
+    
+    # Enforce HTTPS on product image
+    if product_data.get("image_url") and not product_data["image_url"].startswith("https://"):
+        product_data["image_url"] = None
+        
+    db_product = models.Product(**product_data)
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    
+    # Record initial price in PriceHistory if price exists
+    if db_product.price:
+        history = models.PriceHistory(
+            product_id=db_product.id,
+            price=db_product.price,
+            currency=db_product.currency,
+        )
+        db.add(history)
+        db.commit()
+        
+    return db_product
 
 
 def create_products(db: Session, products_data: list[dict]):

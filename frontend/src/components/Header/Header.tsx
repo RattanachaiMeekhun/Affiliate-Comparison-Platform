@@ -90,6 +90,7 @@ export default function Header() {
                 className={`${styles.navLink} ${
                   pathname === link.href ? styles.navLinkActive : ''
                 }`}
+                prefetch={true}
               >
                 {link.label}
               </Link>
@@ -140,7 +141,7 @@ export default function Header() {
                         const imgUrl =
                           product.affiliate_products && product.affiliate_products.length > 0
                             ? product.affiliate_products[0].image_url
-                            : '/placeholder.png';
+                            : '/no-image.png';
 
                         return (
                           <Link
@@ -166,7 +167,7 @@ export default function Header() {
                             onMouseOut={(e) => (e.currentTarget.style.background = 'transparent')}
                           >
                             <img
-                              src={imgUrl || '/placeholder.png'}
+                              src={imgUrl || '/no-image.png'}
                               alt={product.name}
                               style={{ width: 40, height: 40, objectFit: 'contain' }}
                               onError={(e) => {
@@ -213,7 +214,7 @@ export default function Header() {
 
           <div style={{ marginLeft: 16, display: 'flex', alignItems: 'center', gap: 16 }}>
             <CurrencySelector />
-{/* 
+            {/* 
             <Link href="/my-builds">
                <Button type="default" icon={<FolderOpenOutlined />} style={{ borderRadius: 8, fontWeight: 500 }}>
                   My Builds
